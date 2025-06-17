@@ -1,0 +1,32 @@
+@startuml Comps
+skinparam componentStyle rectangle
+
+package "Frontend (React)" {
+  [GameBoard Component]
+  [ControlPanel Component]
+  [HintBox Component]
+}
+
+package "Backend (Express.js)" {
+  [HintController]
+  [GameController]
+  [StatsController]
+  [Hint Engine]
+}
+
+database "MongoDB" {
+  [Game Collection]
+  [Stats Collection]
+}
+
+[GameBoard Component] --> [ControlPanel Component]
+[ControlPanel Component] --> [HintBox Component]
+
+[ControlPanel Component] --> [HintController] : POST /api/hint
+[ControlPanel Component] --> [GameController] : POST /api/game
+[GameBoard Component] --> [StatsController] : GET /api/stats
+
+[HintController] --> [Hint Engine]
+[GameController] --> [Game Collection]
+[StatsController] --> [Stats Collection]
+@enduml

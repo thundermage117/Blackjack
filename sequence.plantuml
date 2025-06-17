@@ -1,0 +1,41 @@
+@startuml sequence
+actor Player
+participant "GameBoard (React)" as UI
+participant "GameController (API)" as GameAPI
+participant "HintController (API)" as HintAPI
+participant "Hint Engine" as Hint
+participant "Game Logic" as Logic
+participant "Game Collection (DB)" as DB
+
+== Game Start ==
+
+Player -> UI : Click "Start Game"
+UI -> GameAPI : POST /api/game/start
+GameAPI -> Logic : Initialize deck, deal cards
+Logic --> GameAPI : Initial hands
+GameAPI --> UI : {playerHand, dealerCard}
+
+== Hint + Action Decision ==
+
+Player -> UI : Click "Hint"
+UI -> HintAPI : POST /api/hint
+HintAPI -> Hint : Analyze hand
+Hint --> HintAPI : Suggest "Hit" or "Stand"
+HintAPI --> UI : { action: "Hit" }
+
+alt Player chooses "Hit"
+    Player -> UI : Click "Hit"
+    UI -> GameAPI : POST /api/game/hit
+    GameAPI -> Logic : Draw card
+    Logic --> GameAPI : Updated playerHand
+    GameAPI --> UI : { playerHand }
+else Player chooses "Stand"
+    Player -> UI : Click "Stand"
+    UI -> GameAPI : POST /api/game/stand
+    GameAPI -> Logic : Dealer plays
+    Logic --> GameAPI : Game result
+    GameAPI -> DB : Save game result
+    GameAPI --> UI : { result: "Win/Loss", dealerHand }
+end
+
+@enduml
