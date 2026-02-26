@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   createInitialRoundState,
   dealRound,
@@ -27,57 +27,41 @@ interface HookState {
   round: RoundState;
   stats: SessionStats;
   hint: string | null;
+  isDealerResolving: boolean;
+  pendingDealerAction: "stand" | "double" | null;
+}
+
+interface HandSummaryView {
+  totalLabel: string;
+  detailLabel: string;
 }
 
 interface BlackjackGameViewModel {
   phase: RoundState["phase"];
-  playerDisplay: string;
-  dealerDisplay: string;
+  playerCards: Card[];
+  dealerCards: Card[];
+  dealerHoleHidden: boolean;
+  playerSummary: HandSummaryView;
+  dealerSummary: HandSummaryView;
   statusMessage: string;
+  resultLabel: string | null;
+  resultTone: "info" | "positive" | "negative" | "neutral";
+  isDealerResolving: boolean;
+  dealLabel: string;
   hint: string | null;
   stats: SessionStats;
+  canDeal: boolean;
   canHit: boolean;
   canStand: boolean;
   canDouble: boolean;
   canRequestHint: boolean;
+  canResetSession: boolean;
   dealRound: () => void;
   hit: () => void;
   stand: () => void;
   double: () => void;
   requestHint: () => void;
-}
-
-function suitSymbol(suit: Card["suit"]): string {
-  if (suit === "clubs") return "C";
-  if (suit === "diamonds") return "D";
-  if (suit === "hearts") return "H";
-  return "S";
-}
-
-function formatCard(card: Card): string {
-  return `${card.rank}${suitSymbol(card.suit)}`;
-}
-
-function formatPlayerHand(hand: Card[]): string {
-  if (hand.length === 0) return "No cards";
-  const score = scoreHand(hand);
-  const softness = score.isSoft ? "soft" : "hard";
-  return `${hand.map(formatCard).join(" ")} (${score.bestTotal}, ${softness})`;
-}
-
-function formatDealerHand(round: RoundState): string {
-  if (round.dealerHand.length === 0) return "No cards";
-
-  if (round.dealerHoleHidden) {
-    const upcard = round.dealerHand[0];
-    if (!upcard) return "No cards";
-    const visibleTotal = scoreHand([upcard]).bestTotal;
-    return `${formatCard(upcard)} [hidden] (showing ${visibleTotal})`;
-  }
-
-  const score = scoreHand(round.dealerHand);
-  const softness = score.isSoft ? "soft" : "hard";
-  return `${round.dealerHand.map(formatCard).join(" ")} (${score.bestTotal}, ${softness})`;
+  resetSession: () => void;
 }
 
 function formatStatus(round: RoundState): string {
@@ -109,14 +93,72 @@ function resultLabel(result?: RoundResult): string | null {
   return "Push";
 }
 
+function summarizePlayerHand(hand: Card[]): HandSummaryView {
+  if (hand.length === 0) {
+    return { totalLabel: "No cards", detailLabel: "Start a round to play." };
+  }
+
+  const score = scoreHand(hand);
+  const detailParts: string[] = [];
+  detailParts.push(score.isSoft ? "Soft hand" : "Hard hand");
+  if (score.isBlackjack) detailParts.push("Blackjack");
+  if (score.isBust) detailParts.push("Bust");
+
+  return {
+    totalLabel: `Total ${score.bestTotal}`,
+    detailLabel: detailParts.join(" · "),
+  };
+}
+
+function summarizeDealerHand(round: RoundState, revealHoleCard: boolean): HandSummaryView {
+  if (round.dealerHand.length === 0) {
+    return { totalLabel: "No cards", detailLabel: "Dealer hand is empty." };
+  }
+
+  const holeHidden = round.dealerHoleHidden && !revealHoleCard;
+  if (holeHidden) {
+    const upcard = round.dealerHand[0];
+    if (!upcard) {
+      return { totalLabel: "No cards", detailLabel: "Dealer hand is empty." };
+    }
+    const visibleScore = scoreHand([upcard]);
+    return {
+      totalLabel: `Showing ${visibleScore.bestTotal}`,
+      detailLabel: "Hole card hidden",
+    };
+  }
+
+  const score = scoreHand(round.dealerHand);
+  const detailParts: string[] = [];
+  detailParts.push(score.isSoft ? "Soft hand" : "Hard hand");
+  if (score.isBlackjack) detailParts.push("Blackjack");
+  if (score.isBust) detailParts.push("Bust");
+
+  return {
+    totalLabel: `Total ${score.bestTotal}`,
+    detailLabel: detailParts.join(" · "),
+  };
+}
+
 export function useBlackjackGame(): BlackjackGameViewModel {
+  const dealerResolveTimerRef = useRef<number | null>(null);
   const [state, setState] = useState<HookState>(() => ({
     round: createInitialRoundState(),
     stats: { wins: 0, losses: 0, pushes: 0 },
     hint: null,
+    isDealerResolving: false,
+    pendingDealerAction: null,
   }));
 
-  const { round, stats, hint } = state;
+  useEffect(() => {
+    return () => {
+      if (dealerResolveTimerRef.current !== null) {
+        window.clearTimeout(dealerResolveTimerRef.current);
+      }
+    };
+  }, []);
+
+  const { round, stats, hint, isDealerResolving, pendingDealerAction } = state;
 
   const transitionRound = (transition: (round: RoundState) => RoundState) => {
     setState((prev) => {
@@ -125,32 +167,121 @@ export function useBlackjackGame(): BlackjackGameViewModel {
         round: nextRound,
         stats: applyCompletedRoundToStats(prev.stats, prev.round, nextRound),
         hint: null,
+        isDealerResolving: false,
+        pendingDealerAction: null,
       };
     });
   };
 
+  const transitionRoundWithDealerDelay = (
+    pendingAction: "stand" | "double",
+    transition: (round: RoundState) => RoundState,
+  ) => {
+    setState((prev) => {
+      if (prev.isDealerResolving) return prev;
+      return {
+        ...prev,
+        hint: null,
+        isDealerResolving: true,
+        pendingDealerAction: pendingAction,
+      };
+    });
+
+    if (dealerResolveTimerRef.current !== null) {
+      window.clearTimeout(dealerResolveTimerRef.current);
+    }
+
+    dealerResolveTimerRef.current = window.setTimeout(() => {
+      dealerResolveTimerRef.current = null;
+      setState((prev) => {
+        const nextRound = transition(prev.round);
+        return {
+          round: nextRound,
+          stats: applyCompletedRoundToStats(prev.stats, prev.round, nextRound),
+          hint: null,
+          isDealerResolving: false,
+          pendingDealerAction: null,
+        };
+      });
+    }, 520);
+  };
+
+  const resetSession = () => {
+    if (dealerResolveTimerRef.current !== null) {
+      window.clearTimeout(dealerResolveTimerRef.current);
+      dealerResolveTimerRef.current = null;
+    }
+
+    setState({
+      round: { ...createInitialRoundState(), message: "Session reset. Press Deal to start." },
+      stats: { wins: 0, losses: 0, pushes: 0 },
+      hint: null,
+      isDealerResolving: false,
+      pendingDealerAction: null,
+    });
+  };
+
+  const displayPhase = isDealerResolving ? "dealer-turn" : round.phase;
   const canHit = isActionAllowed(round, "hit");
   const canStand = isActionAllowed(round, "stand");
   const canDouble = isActionAllowed(round, "double");
-  const canRequestHint = round.phase === "player-turn" && round.playerHand.length > 0 && round.dealerHand.length > 0;
+  const canDeal = !isDealerResolving && round.phase !== "player-turn" && round.phase !== "dealer-turn";
+  const canRequestHint =
+    !isDealerResolving &&
+    round.phase === "player-turn" &&
+    round.playerHand.length > 0 &&
+    round.dealerHand.length > 0;
   const outcomeText = resultLabel(round.result);
-  const statusMessage = outcomeText ? `${formatStatus(round)} [${outcomeText}]` : formatStatus(round);
+  const statusMessage = isDealerResolving
+    ? pendingDealerAction === "double"
+      ? "Dealer resolving after double..."
+      : "Dealer revealing and drawing..."
+    : formatStatus(round);
+  const resultTone: BlackjackGameViewModel["resultTone"] =
+    round.result === "blackjack_win" || round.result === "win"
+      ? "positive"
+      : round.result === "lose"
+        ? "negative"
+        : round.result === "push"
+          ? "neutral"
+          : "info";
+
+  const dealerHoleHidden = round.dealerHoleHidden && !isDealerResolving;
+  const dealLabel = round.phase === "round-over" ? "Next Round" : "Deal";
 
   return {
-    phase: round.phase,
-    playerDisplay: formatPlayerHand(round.playerHand),
-    dealerDisplay: formatDealerHand(round),
+    phase: displayPhase,
+    playerCards: round.playerHand,
+    dealerCards: round.dealerHand,
+    dealerHoleHidden,
+    playerSummary: summarizePlayerHand(round.playerHand),
+    dealerSummary: summarizeDealerHand(round, isDealerResolving),
     statusMessage,
+    resultLabel: outcomeText,
+    resultTone,
+    isDealerResolving,
+    dealLabel,
     hint,
     stats,
-    canHit,
-    canStand,
-    canDouble,
+    canDeal,
+    canHit: canHit && !isDealerResolving,
+    canStand: canStand && !isDealerResolving,
+    canDouble: canDouble && !isDealerResolving,
     canRequestHint,
-    dealRound: () => transitionRound((current) => dealRound(current)),
+    canResetSession: true,
+    dealRound: () => {
+      if (!canDeal) return;
+      transitionRound((current) => dealRound(current));
+    },
     hit: () => transitionRound((current) => playerHit(current)),
-    stand: () => transitionRound((current) => playerStand(current)),
-    double: () => transitionRound((current) => playerDouble(current)),
+    stand: () => {
+      if (!canStand || isDealerResolving) return;
+      transitionRoundWithDealerDelay("stand", (current) => playerStand(current));
+    },
+    double: () => {
+      if (!canDouble || isDealerResolving) return;
+      transitionRoundWithDealerDelay("double", (current) => playerDouble(current));
+    },
     requestHint: () => {
       setState((prev) => {
         const current = prev.round;
@@ -182,5 +313,6 @@ export function useBlackjackGame(): BlackjackGameViewModel {
         }
       });
     },
+    resetSession,
   };
 }

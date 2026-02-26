@@ -7,7 +7,7 @@ export function App() {
         <p className="eyebrow">Blackjack MVP</p>
         <h1>Blackjack</h1>
         <p className="subtitle">
-          UI scaffold wired for a frontend-first game engine + hint engine.
+          Frontend-first blackjack MVP with shared game logic and basic-strategy hints.
         </p>
       </header>
       <BlackjackTable />
