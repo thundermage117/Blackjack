@@ -43,6 +43,10 @@ export function BlackjackTable() {
           <span>
             Stats: {game.stats.wins}W / {game.stats.losses}L / {game.stats.pushes}P
           </span>
+          <span>
+            Shoe: {game.shoeCardsRemaining} cards remaining
+            {game.reshufflePending ? " · Reshuffle next round" : ""}
+          </span>
           <span>Hint: {game.hint ?? "No hint requested"}</span>
         </div>
       </div>

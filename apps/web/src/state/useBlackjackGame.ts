@@ -48,6 +48,8 @@ interface BlackjackGameViewModel {
   resultTone: "info" | "positive" | "negative" | "neutral";
   isDealerResolving: boolean;
   dealLabel: string;
+  shoeCardsRemaining: number;
+  reshufflePending: boolean;
   hint: string | null;
   stats: SessionStats;
   canDeal: boolean;
@@ -232,11 +234,14 @@ export function useBlackjackGame(): BlackjackGameViewModel {
     round.playerHand.length > 0 &&
     round.dealerHand.length > 0;
   const outcomeText = resultLabel(round.result);
+  const reshufflePending = round.reshufflePending;
   const statusMessage = isDealerResolving
     ? pendingDealerAction === "double"
       ? "Dealer resolving after double..."
       : "Dealer revealing and drawing..."
-    : formatStatus(round);
+    : reshufflePending && round.phase === "round-over"
+      ? `${formatStatus(round)} Cut card reached. Shoe will reshuffle next round.`
+      : formatStatus(round);
   const resultTone: BlackjackGameViewModel["resultTone"] =
     round.result === "blackjack_win" || round.result === "win"
       ? "positive"
@@ -247,7 +252,12 @@ export function useBlackjackGame(): BlackjackGameViewModel {
           : "info";
 
   const dealerHoleHidden = round.dealerHoleHidden && !isDealerResolving;
-  const dealLabel = round.phase === "round-over" ? "Next Round" : "Deal";
+  const dealLabel =
+    round.phase === "round-over"
+      ? reshufflePending
+        ? "Reshuffle & Deal"
+        : "Next Round"
+      : "Deal";
 
   return {
     phase: displayPhase,
@@ -261,6 +271,8 @@ export function useBlackjackGame(): BlackjackGameViewModel {
     resultTone,
     isDealerResolving,
     dealLabel,
+    shoeCardsRemaining: round.shoe.length,
+    reshufflePending,
     hint,
     stats,
     canDeal,

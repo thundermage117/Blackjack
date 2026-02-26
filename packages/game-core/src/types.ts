@@ -30,6 +30,7 @@ export interface GameRules {
   allowSplit: boolean;
   allowSurrender: boolean;
   deckCount: number;
+  reshuffleCutoffCards: number;
 }
 
 export interface HandScore {
@@ -43,6 +44,7 @@ export interface HandScore {
 export interface RoundState {
   phase: RoundPhase;
   shoe: Card[];
+  reshufflePending: boolean;
   playerHand: Card[];
   dealerHand: Card[];
   dealerHoleHidden: boolean;

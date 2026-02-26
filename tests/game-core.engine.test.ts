@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import engineFixtures from "./fixtures/engine-acceptance.json";
 import { buildPaddedShoe, parseFixtureCard } from "./helpers/fixtureCards";
 import {
+  DEFAULT_MVP_RULES,
   createEmptyRoundState,
   dealRound,
   isActionAllowed,
@@ -81,5 +82,37 @@ describe("game-core engine fixtures", () => {
     expect(score.bestTotal).toBe(fixture.expected.dealerTotal);
     expect(score.isSoft).toBe(fixture.expected.dealerSoft);
     expect(shouldDealerDraw(dealerHand, "stand")).toBe(fixture.expected.dealerShouldDraw);
+  });
+
+  it("marks reshuffle pending when remaining shoe drops below configured cutoff", () => {
+    const shoe = buildPaddedShoe([
+      parseFixtureCard("9_spades"),
+      parseFixtureCard("5_clubs"),
+      parseFixtureCard("7_hearts"),
+      parseFixtureCard("9_diamonds"),
+    ]);
+
+    const dealt = dealRound(
+      { ...createEmptyRoundState(), shoe },
+      { ...DEFAULT_MVP_RULES, reshuffleCutoffCards: 60 },
+    );
+
+    expect(dealt.reshufflePending).toBe(true);
+  });
+
+  it("reshuffles on next deal when reshufflePending is set", () => {
+    const dealt = dealRound(
+      {
+        ...createEmptyRoundState(),
+        shoe: buildPaddedShoe([]),
+        reshufflePending: true,
+      },
+      { ...DEFAULT_MVP_RULES, reshuffleCutoffCards: 1 },
+      () => 0.999999,
+    );
+
+    expect(dealt.playerHand).toHaveLength(2);
+    expect(dealt.dealerHand).toHaveLength(2);
+    expect(dealt.message).toContain("Shoe reshuffled");
   });
 });
