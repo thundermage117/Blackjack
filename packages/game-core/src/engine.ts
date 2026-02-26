@@ -8,7 +8,7 @@ export const DEFAULT_MVP_RULES: GameRules = {
   allowDouble: true,
   allowSplit: false,
   allowSurrender: false,
-  deckCount: 1,
+  deckCount: 6,
   reshuffleCutoffCards: 15,
 };
 

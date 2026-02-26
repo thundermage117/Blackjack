@@ -19,7 +19,7 @@ export const mvpS17StrategyTable: StrategyTable = {
   metadata: {
     name: "blackjack-mvp-s17",
     dealerSoft17: "stand",
-    deckCount: 1,
+    deckCount: 6,
     notes: "No-split MVP strategy table for hard/soft totals.",
   },
   hard: {

@@ -94,7 +94,7 @@ describe("game-core engine fixtures", () => {
 
     const dealt = dealRound(
       { ...createEmptyRoundState(), shoe },
-      { ...DEFAULT_MVP_RULES, reshuffleCutoffCards: 60 },
+      { ...DEFAULT_MVP_RULES, reshuffleCutoffCards: 54 },
     );
 
     expect(dealt.reshufflePending).toBe(true);

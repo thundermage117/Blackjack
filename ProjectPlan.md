@@ -2,7 +2,7 @@
 
 **Project Title**: Blackjack  
 **Author**: Abhinav Siddharth  
-**Version**: 1.1  
+**Version**: 1.2  
 **Date**: 2026-02-26
 
 ---
@@ -51,7 +51,7 @@ The project goal is an MVP that is fun to play, technically correct, and easy to
 Hint correctness depends on exact rules. MVP will use these assumptions:
 
 - 1 player vs dealer
-- 1 standard deck (can be changed later)
+- 6-deck shoe (standard casino-style; can be changed later)
 - Dealer stands on soft 17
 - Blackjack pays 3:2
 - Double allowed on first two cards only

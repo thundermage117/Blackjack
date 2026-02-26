@@ -1,6 +1,6 @@
 # Blackjack Rules and MVP Acceptance Checklist
 
-Version: 1.0
+Version: 1.1
 Last updated: 2026-02-26
 
 ## Ruleset (MVP Baseline)
@@ -16,7 +16,7 @@ If any rule changes, update:
 ### Table Rules
 
 - Single player versus dealer
-- One standard 52-card deck
+- Six-deck shoe (standard casino-style shoe)
 - Dealer receives 2 cards (1 upcard, 1 hole card)
 - Player receives 2 cards
 - Dealer stands on soft 17 (S17)

@@ -1,6 +1,6 @@
 # Hint Strategy Table Format (Data-Driven)
 
-Version: 1.0
+Version: 1.1
 Last updated: 2026-02-26
 
 ## Goal
@@ -73,7 +73,7 @@ interface StrategyTable {
   "metadata": {
     "name": "blackjack-mvp-s17",
     "dealerSoft17": "stand",
-    "deckCount": 1
+    "deckCount": 6
   },
   "hard": {
     "16": { "2": "S", "3": "S", "4": "S", "5": "S", "6": "S", "7": "H", "8": "H", "9": "H", "10": "H", "A": "H" },
