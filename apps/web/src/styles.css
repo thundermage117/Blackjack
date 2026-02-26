@@ -1,0 +1,113 @@
+:root {
+  color-scheme: light;
+  --bg: #f6f1e8;
+  --surface: #fffaf0;
+  --ink: #1f1a14;
+  --muted: #6c6256;
+  --line: #d6ccb7;
+  --accent: #146c43;
+  --accent-2: #b45309;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 15% 10%, rgba(20, 108, 67, 0.08), transparent 40%),
+    radial-gradient(circle at 85% 20%, rgba(180, 83, 9, 0.08), transparent 35%),
+    var(--bg);
+}
+
+button {
+  font: inherit;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  padding: 0.5rem 0.8rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.app-shell {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 1.25rem;
+}
+
+.app-header h1 {
+  margin: 0.2rem 0;
+  font-size: 2rem;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--accent);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+}
+
+.subtitle {
+  margin-top: 0.2rem;
+  color: var(--muted);
+}
+
+.table-card {
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, #fffdf6, #fff7ea);
+  border-radius: 1rem;
+  padding: 1rem;
+  box-shadow: 0 8px 24px rgba(31, 26, 20, 0.06);
+}
+
+.hand-row {
+  padding: 0.75rem 0;
+  border-bottom: 1px dashed var(--line);
+}
+
+.hand-row h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1rem;
+}
+
+.cards {
+  margin: 0;
+  font-family: "Courier New", monospace;
+}
+
+.status-panel {
+  padding: 0.75rem 0;
+}
+
+.status-panel p {
+  margin: 0.2rem 0;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.todo-note {
+  margin: 0.85rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 640px) {
+  .controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

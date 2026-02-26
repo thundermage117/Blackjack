@@ -1,0 +1,42 @@
+[
+  {
+    "id": "hard-16-vs-10",
+    "ruleset": "mvp-s17-no-split",
+    "playerHand": ["10_spades", "6_hearts"],
+    "dealerUpcard": "10_clubs",
+    "doubleAllowed": false,
+    "expectedAction": "Hit"
+  },
+  {
+    "id": "hard-17-vs-ace",
+    "ruleset": "mvp-s17-no-split",
+    "playerHand": ["10_spades", "7_hearts"],
+    "dealerUpcard": "A_clubs",
+    "doubleAllowed": false,
+    "expectedAction": "Stand"
+  },
+  {
+    "id": "soft-18-vs-6-double",
+    "ruleset": "mvp-s17-no-split",
+    "playerHand": ["A_spades", "7_hearts"],
+    "dealerUpcard": "6_clubs",
+    "doubleAllowed": true,
+    "expectedAction": "Double"
+  },
+  {
+    "id": "soft-18-vs-6-no-double-fallback",
+    "ruleset": "mvp-s17-no-split",
+    "playerHand": ["A_spades", "7_hearts"],
+    "dealerUpcard": "6_clubs",
+    "doubleAllowed": false,
+    "expectedAction": "Stand"
+  },
+  {
+    "id": "hard-11-vs-9-double",
+    "ruleset": "mvp-s17-no-split",
+    "playerHand": ["6_spades", "5_hearts"],
+    "dealerUpcard": "9_clubs",
+    "doubleAllowed": true,
+    "expectedAction": "Double"
+  }
+]

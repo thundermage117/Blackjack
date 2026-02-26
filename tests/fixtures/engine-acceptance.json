@@ -1,0 +1,63 @@
+[
+  {
+    "id": "natural-blackjack-player-wins",
+    "ruleset": "mvp-s17-no-split",
+    "playerHand": ["A_spades", "K_hearts"],
+    "dealerHand": ["9_clubs", "7_diamonds"],
+    "expected": {
+      "playerBlackjack": true,
+      "dealerBlackjack": false,
+      "result": "blackjack_win"
+    }
+  },
+  {
+    "id": "natural-blackjack-push",
+    "ruleset": "mvp-s17-no-split",
+    "playerHand": ["A_spades", "Q_hearts"],
+    "dealerHand": ["A_clubs", "J_diamonds"],
+    "expected": {
+      "playerBlackjack": true,
+      "dealerBlackjack": true,
+      "result": "push"
+    }
+  },
+  {
+    "id": "soft-total-reduces-ace-on-hit",
+    "ruleset": "mvp-s17-no-split",
+    "playerHand": ["A_spades", "6_hearts", "9_clubs"],
+    "expected": {
+      "bestTotal": 16,
+      "isSoft": false,
+      "isBust": false
+    }
+  },
+  {
+    "id": "double-only-on-first-two-cards",
+    "ruleset": "mvp-s17-no-split",
+    "playerHand": ["5_spades", "4_hearts", "2_clubs"],
+    "playerActionsTaken": ["hit"],
+    "expected": {
+      "doubleAllowed": false
+    }
+  },
+  {
+    "id": "dealer-stands-on-soft-17",
+    "ruleset": "mvp-s17-no-split",
+    "dealerHand": ["A_spades", "6_hearts"],
+    "expected": {
+      "dealerShouldDraw": false,
+      "dealerTotal": 17,
+      "dealerSoft": true
+    }
+  },
+  {
+    "id": "dealer-draws-on-soft-16",
+    "ruleset": "mvp-s17-no-split",
+    "dealerHand": ["A_spades", "5_hearts"],
+    "expected": {
+      "dealerShouldDraw": true,
+      "dealerTotal": 16,
+      "dealerSoft": true
+    }
+  }
+]
