@@ -24,8 +24,9 @@ make dev
 - `npm run build` - Build all workspaces (currently builds the web app)
 - `npm run preview` - Preview the production web build locally
 - `npm run typecheck` - Run TypeScript typecheck for the web app (includes shared packages via tsconfig)
+- `npm run test` - Run fixture-backed Vitest tests (engine + hint engine)
 - `make` - Show available shortcuts
-- `make dev` / `make build` / `make preview` / `make typecheck` - Shortcut wrappers around npm scripts
+- `make dev` / `make build` / `make preview` / `make typecheck` / `make test` - Shortcut wrappers around npm scripts
 
 ## Project Layout
 

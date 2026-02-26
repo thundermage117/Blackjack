@@ -1,4 +1,4 @@
-.PHONY: help install dev build preview typecheck
+.PHONY: help install dev build preview typecheck test
 
 help:
 	@echo "Available commands:"
@@ -7,6 +7,7 @@ help:
 	@echo "  make build      Build all workspaces"
 	@echo "  make preview    Preview the production build"
 	@echo "  make typecheck  Run TypeScript typecheck"
+	@echo "  make test       Run fixture-backed tests"
 
 install:
 	npm install
@@ -22,3 +23,6 @@ preview:
 
 typecheck:
 	npm run typecheck
+
+test:
+	npm run test
