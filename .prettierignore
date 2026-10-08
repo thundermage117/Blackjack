@@ -4,6 +4,4 @@ coverage
 package-lock.json
 
 # Hand-authored planning documents keep their original formatting.
-ProjectPlan.md
-Requirements.md
-Specifications.md
+docs/planning/*.md
