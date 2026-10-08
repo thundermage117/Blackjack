@@ -5,6 +5,10 @@ function percent(value: number | null): string {
   return value === null ? "–" : `${Math.round(value * 100)}%`;
 }
 
+function capitalize(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
 function signed(value: number): string {
   return value > 0 ? `+${value}` : String(value);
 }
@@ -145,7 +149,7 @@ export function CoachPanel({ game }: { game: GameViewModel }) {
           className={`coach-card ${game.feedback.correct ? "is-correct" : "is-mistake"}`}
           role="status"
         >
-          <p className="coach-eyebrow">{game.feedback.situation}</p>
+          <p className="coach-eyebrow coach-situation">{capitalize(game.feedback.situation)}</p>
           <p className="coach-title">
             {game.feedback.correct
               ? `✓ ${game.feedback.chosen} is right`
@@ -157,7 +161,9 @@ export function CoachPanel({ game }: { game: GameViewModel }) {
 
       {advice ? (
         <div className="coach-card is-advice" id="auto-hint">
-          <p className="coach-eyebrow">Suggested · {advice.situation}</p>
+          <p className="coach-eyebrow coach-situation">
+            Suggested · {capitalize(advice.situation)}
+          </p>
           <p className="coach-title">{advice.action}</p>
           <p className="coach-text">{advice.explanation}</p>
         </div>
@@ -165,7 +171,9 @@ export function CoachPanel({ game }: { game: GameViewModel }) {
         <div className="coach-card is-advice" role="status">
           {game.hint.kind === "advice" ? (
             <>
-              <p className="coach-eyebrow">Hint · {game.hint.situation}</p>
+              <p className="coach-eyebrow coach-situation">
+                Hint · {capitalize(game.hint.situation)}
+              </p>
               <p className="coach-title">{game.hint.action}</p>
             </>
           ) : null}

@@ -70,8 +70,13 @@ export function BlackjackTable() {
           >
             {game.settings.muted ? "🔇" : "🔊"}
           </button>
-          <button type="button" className="tool-btn" onClick={() => setDialog("settings")}>
-            Level {level.id} · Settings
+          <button
+            type="button"
+            className="tool-btn"
+            onClick={() => setDialog("settings")}
+            aria-label={`Settings, level ${level.id}`}
+          >
+            ⚙ Level {level.id}
           </button>
         </div>
       </nav>

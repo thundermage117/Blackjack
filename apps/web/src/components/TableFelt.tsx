@@ -11,18 +11,18 @@ function FeltArc({ rules }: { rules: GameRules }) {
   const line1 = `BLACKJACK PAYS ${payoutLabel(rules.blackjackPayout)}`;
   const line2 = `DEALER ${rules.dealerSoft17 === "hit" ? "HITS" : "MUST STAND ON"} SOFT 17${rules.allowInsurance ? " · INSURANCE PAYS 2 TO 1" : ""}`;
   return (
-    <svg className="felt-arc" viewBox="0 0 600 120" aria-hidden="true">
+    <svg className="felt-arc" viewBox="0 0 600 130" aria-hidden="true">
       <defs>
-        <path id="arc-outer" d="M 40 30 Q 300 150 560 30" />
-        <path id="arc-inner" d="M 90 20 Q 300 120 510 20" />
+        <path id="arc-main" d="M 70 18 Q 300 118 530 18" />
+        <path id="arc-sub" d="M 16 48 Q 300 168 584 48" />
       </defs>
       <text className="felt-arc-main">
-        <textPath href="#arc-outer" startOffset="50%" textAnchor="middle">
+        <textPath href="#arc-main" startOffset="50%" textAnchor="middle">
           {line1}
         </textPath>
       </text>
       <text className="felt-arc-sub">
-        <textPath href="#arc-inner" startOffset="50%" textAnchor="middle">
+        <textPath href="#arc-sub" startOffset="50%" textAnchor="middle">
           {line2}
         </textPath>
       </text>
@@ -61,7 +61,9 @@ export function TableFelt({ game, rules }: { game: GameViewModel; rules: GameRul
         ) : null}
       </div>
 
-      <div className={`player-row hands-${table.playerHands.length || 1}`}>
+      <div
+        className={`player-row hands-${table.playerHands.length || 1}${table.phase === "player-turn" ? " has-active" : ""}`}
+      >
         {table.playerHands.length > 0 ? (
           table.playerHands.map((hand, index) => (
             <PlayerHand

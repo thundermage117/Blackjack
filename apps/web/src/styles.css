@@ -234,7 +234,7 @@ input {
 .felt-arc {
   display: block;
   width: min(100%, 560px);
-  margin: -0.5rem auto -1.25rem;
+  margin: -0.75rem auto -1.5rem;
   pointer-events: none;
 }
 
@@ -250,7 +250,7 @@ input {
   font-family: var(--font-ui);
   font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.16em;
   fill: rgba(255, 238, 196, 0.48);
 }
 
@@ -335,10 +335,9 @@ input {
   box-shadow: 0 0 0 1px rgba(233, 196, 106, 0.55);
 }
 
-.player-row.hands-2 .player-seat:not(.is-active),
-.player-row.hands-3 .player-seat:not(.is-active),
-.player-row.hands-4 .player-seat:not(.is-active) {
-  opacity: 0.82;
+/* While one split hand is being played, the others step back. */
+.player-row.has-active:not(.hands-1) .player-seat:not(.is-active) {
+  opacity: 0.6;
 }
 
 .seat-label {
@@ -871,6 +870,12 @@ input {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--muted);
+}
+
+.coach-situation {
+  text-transform: none;
+  letter-spacing: 0.02em;
+  font-size: 0.78rem;
 }
 
 .coach-title {
@@ -1463,12 +1468,17 @@ input {
     inset: 6px;
   }
 
+  .felt-arc {
+    margin-bottom: -0.5rem;
+  }
+
   .felt-arc-main {
     font-size: 26px;
   }
 
   .felt-arc-sub {
-    font-size: 15px;
+    font-size: 14px;
+    letter-spacing: 0.08em;
   }
 
   .shoe {
