@@ -1,4 +1,5 @@
 import { BlackjackTable } from "./components/BlackjackTable";
+import { UpdatePrompt } from "./components/UpdatePrompt";
 
 export function App() {
   return (
@@ -9,6 +10,7 @@ export function App() {
         </h1>
       </header>
       <BlackjackTable />
+      <UpdatePrompt />
     </main>
   );
 }
