@@ -1,6 +1,6 @@
 import { createDeck, shuffle } from "./cards";
 import { scoreHand, shouldDealerDraw } from "./scoring";
-import type { Card, GameRules, PlayerAction, RoundResult, RoundState } from "./types";
+import type { Card, GameRules, HandScore, PlayerAction, RoundResult, RoundState } from "./types";
 
 export const DEFAULT_MVP_RULES: GameRules = {
   dealerSoft17: "stand",
@@ -47,11 +47,14 @@ function withShoeStatus(state: RoundState, rules: GameRules): RoundState {
   };
 }
 
-function messageForResult(result: RoundResult, playerTotal: number, dealerTotal: number): string {
+function messageForResult(result: RoundResult, player: HandScore, dealer: HandScore): string {
   if (result === "blackjack_win") return "Blackjack! Player wins.";
-  if (result === "push") return `Push (${playerTotal} vs ${dealerTotal})`;
-  if (result === "win") return `Player wins (${playerTotal} vs ${dealerTotal})`;
-  return `Dealer wins (${dealerTotal} vs ${playerTotal})`;
+  if (player.isBust) return `Player busts with ${player.bestTotal}. Dealer wins.`;
+  if (dealer.isBust) return `Dealer busts with ${dealer.bestTotal}. Player wins.`;
+  if (result === "lose" && dealer.isBlackjack) return "Dealer has blackjack. Dealer wins.";
+  if (result === "push") return `Push (${player.bestTotal} vs ${dealer.bestTotal})`;
+  if (result === "win") return `Player wins (${player.bestTotal} vs ${dealer.bestTotal})`;
+  return `Dealer wins (${dealer.bestTotal} vs ${player.bestTotal})`;
 }
 
 function resolveRoundResult(playerHand: Card[], dealerHand: Card[]): RoundResult {
@@ -80,7 +83,7 @@ function withResolvedRound(
       phase: "round-over",
       dealerHoleHidden: false,
       result,
-      message: messageForResult(result, playerScore.bestTotal, dealerScore.bestTotal),
+      message: messageForResult(result, playerScore, dealerScore),
     },
     rules,
   );

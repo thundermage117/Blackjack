@@ -37,6 +37,7 @@ describe("initial deal", () => {
     expect(round.phase).toBe("round-over");
     expect(round.result).toBe("lose");
     expect(round.dealerHoleHidden).toBe(false);
+    expect(round.message).toBe("Dealer has blackjack. Dealer wins.");
   });
 });
 
@@ -92,6 +93,7 @@ describe("dealer play and outcomes", () => {
     expect(busted.result).toBe("lose");
     expect(busted.dealerHand).toHaveLength(2);
     expect(busted.dealerHoleHidden).toBe(false);
+    expect(busted.message).toBe("Player busts with 26. Dealer wins.");
   });
 
   it("dealer draws until reaching 17 or more, then stops", () => {
@@ -113,7 +115,9 @@ describe("dealer play and outcomes", () => {
 
   it("dealer bust is a player win", () => {
     const dealt = dealStacked(["10_spades", "10_clubs", "2_hearts", "6_diamonds", "K_clubs"]);
-    expect(playerStand(dealt).result).toBe("win");
+    const stood = playerStand(dealt);
+    expect(stood.result).toBe("win");
+    expect(stood.message).toBe("Dealer busts with 26. Player wins.");
   });
 
   it("higher dealer total is a player loss", () => {
