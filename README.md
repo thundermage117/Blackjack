@@ -33,6 +33,25 @@ npm run dev
 
 Open the URL Vite prints (usually `http://localhost:5173`). Requires Node 20+.
 
+## Android app
+
+The trainer also builds as an Android app with [Capacitor](https://capacitorjs.com)
+([ADR-0015](docs/adr/0015-android-app-with-capacitor.md)). It needs JDK 21 and the
+Android SDK:
+
+```bash
+brew install openjdk@21 && brew install --cask android-commandlinetools
+export JAVA_HOME=/opt/homebrew/opt/openjdk@21
+export ANDROID_HOME="$HOME/Library/Android/sdk"
+sdkmanager --sdk_root="$ANDROID_HOME" --licenses
+
+npm run apk   # → apps/web/android/app/build/outputs/apk/release/app-release.apk
+```
+
+Release builds are signed with the keystore described in
+`apps/web/android/keystore.properties`, which is not in git. Without it you get an
+unsigned APK. Increase `versionCode` in `apps/web/android/app/build.gradle` for each release.
+
 ## Keyboard shortcuts
 
 | Key       | Action                              |
@@ -104,8 +123,9 @@ same way. Serve it over HTTPS so the service worker (install and offline play) r
 
 - ~~Make the web app installable as a PWA (manifest, icons, offline play via a service
   worker).~~ Done, see [ADR-0014](docs/adr/0014-installable-pwa-with-offline-play.md).
-- Wrap it as native Android and iOS apps (e.g. Capacitor) for the app stores, with native
-  haptics and audio.
+- ~~Wrap it as a native Android app (Capacitor).~~ Done, see
+  [ADR-0015](docs/adr/0015-android-app-with-capacitor.md). Still to do: iOS, Play Store
+  listing, CI-built releases, native haptics and audio.
 - Mobile polish: landscape layout, larger touch targets for split hands, swipe gestures for
   hit/stand.
 

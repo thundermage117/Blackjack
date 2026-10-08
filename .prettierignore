@@ -1,6 +1,8 @@
 node_modules
 dist
 coverage
+# Generated native project (Gradle files, copied web build).
+apps/web/android
 package-lock.json
 
 # Hand-authored planning documents keep their original formatting.

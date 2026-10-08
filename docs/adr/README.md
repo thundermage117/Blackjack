@@ -20,6 +20,7 @@ made, and what they cost. The format follows
 | [0012](0012-csprng-shuffle-and-fairness-testing.md)          | Cryptographic shuffle source and statistical fairness tests   | Accepted |
 | [0013](0013-end-to-end-tests-against-production-build.md)    | End-to-end tests with Playwright against the production build | Accepted |
 | [0014](0014-installable-pwa-with-offline-play.md)            | Installable PWA with offline play                             | Accepted |
+| [0015](0015-android-app-with-capacitor.md)                   | Android app with Capacitor                                    | Accepted |
 
 ## Writing a new ADR
 
