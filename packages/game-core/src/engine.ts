@@ -74,13 +74,16 @@ function withResolvedRound(
 
   const playerScore = scoreHand(base.playerHand);
   const dealerScore = scoreHand(base.dealerHand);
-  return withShoeStatus({
-    ...base,
-    phase: "round-over",
-    dealerHoleHidden: false,
-    result,
-    message: messageForResult(result, playerScore.bestTotal, dealerScore.bestTotal),
-  }, rules);
+  return withShoeStatus(
+    {
+      ...base,
+      phase: "round-over",
+      dealerHoleHidden: false,
+      result,
+      message: messageForResult(result, playerScore.bestTotal, dealerScore.bestTotal),
+    },
+    rules,
+  );
 }
 
 function settleNaturals(state: RoundState, rules: GameRules = DEFAULT_MVP_RULES): RoundState {
@@ -147,7 +150,8 @@ export function dealRound(
   rules: GameRules = DEFAULT_MVP_RULES,
   random = Math.random,
 ): RoundState {
-  const shouldReshuffleBeforeDeal = state.reshufflePending || isBelowReshuffleCutoff(state.shoe, rules);
+  const shouldReshuffleBeforeDeal =
+    state.reshufflePending || isBelowReshuffleCutoff(state.shoe, rules);
   let shoe = shouldReshuffleBeforeDeal ? newShuffledShoe(rules, random) : state.shoe;
 
   const p1 = drawCard(shoe);
@@ -159,17 +163,20 @@ export function dealRound(
   const d2 = drawCard(shoe);
   shoe = d2.shoe;
 
-  const next: RoundState = withShoeStatus({
-    phase: "player-turn",
-    shoe,
-    reshufflePending: false,
-    playerHand: [p1.card, p2.card],
-    dealerHand: [d1.card, d2.card],
-    dealerHoleHidden: true,
-    playerActionsTaken: [],
-    result: undefined,
-    message: shouldReshuffleBeforeDeal ? "Shoe reshuffled. Player turn" : "Player turn",
-  }, rules);
+  const next: RoundState = withShoeStatus(
+    {
+      phase: "player-turn",
+      shoe,
+      reshufflePending: false,
+      playerHand: [p1.card, p2.card],
+      dealerHand: [d1.card, d2.card],
+      dealerHoleHidden: true,
+      playerActionsTaken: [],
+      result: undefined,
+      message: shouldReshuffleBeforeDeal ? "Shoe reshuffled. Player turn" : "Player turn",
+    },
+    rules,
+  );
 
   return settleNaturals(next, rules);
 }
@@ -208,10 +215,7 @@ export function summarizeRoundState(state: RoundState): {
   };
 }
 
-export function playerHit(
-  state: RoundState,
-  rules: GameRules = DEFAULT_MVP_RULES,
-): RoundState {
+export function playerHit(state: RoundState, rules: GameRules = DEFAULT_MVP_RULES): RoundState {
   if (!isActionAllowed(state, "hit", rules)) {
     return { ...state, message: "Hit is not allowed right now." };
   }
@@ -220,13 +224,16 @@ export function playerHit(
   const playerHand = [...state.playerHand, draw.card];
   const playerScore = scoreHand(playerHand);
 
-  const next: RoundState = withShoeStatus({
-    ...state,
-    shoe: draw.shoe,
-    playerHand,
-    playerActionsTaken: [...state.playerActionsTaken, "hit"],
-    message: "Player hit",
-  }, rules);
+  const next: RoundState = withShoeStatus(
+    {
+      ...state,
+      shoe: draw.shoe,
+      playerHand,
+      playerActionsTaken: [...state.playerActionsTaken, "hit"],
+      message: "Player hit",
+    },
+    rules,
+  );
 
   if (playerScore.isBust) {
     return withResolvedRound(
@@ -242,10 +249,7 @@ export function playerHit(
   return next;
 }
 
-export function playerStand(
-  state: RoundState,
-  rules: GameRules = DEFAULT_MVP_RULES,
-): RoundState {
+export function playerStand(state: RoundState, rules: GameRules = DEFAULT_MVP_RULES): RoundState {
   if (!isActionAllowed(state, "stand", rules)) {
     return { ...state, message: "Stand is not allowed right now." };
   }
@@ -262,10 +266,7 @@ export function playerStand(
   );
 }
 
-export function playerDouble(
-  state: RoundState,
-  rules: GameRules = DEFAULT_MVP_RULES,
-): RoundState {
+export function playerDouble(state: RoundState, rules: GameRules = DEFAULT_MVP_RULES): RoundState {
   if (!isActionAllowed(state, "double", rules)) {
     return { ...state, message: "Double is not allowed right now." };
   }
@@ -274,15 +275,18 @@ export function playerDouble(
   const playerHand = [...state.playerHand, draw.card];
   const playerScore = scoreHand(playerHand);
 
-  const next: RoundState = withShoeStatus({
-    ...state,
-    shoe: draw.shoe,
-    playerHand,
-    dealerHoleHidden: false,
-    playerActionsTaken: [...state.playerActionsTaken, "double"],
-    phase: "dealer-turn",
-    message: "Player doubled",
-  }, rules);
+  const next: RoundState = withShoeStatus(
+    {
+      ...state,
+      shoe: draw.shoe,
+      playerHand,
+      dealerHoleHidden: false,
+      playerActionsTaken: [...state.playerActionsTaken, "double"],
+      phase: "dealer-turn",
+      message: "Player doubled",
+    },
+    rules,
+  );
 
   if (playerScore.isBust) {
     return withResolvedRound(next, "lose", rules);
@@ -292,10 +296,7 @@ export function playerDouble(
 }
 
 export type RoundEvent =
-  | { type: "deal" }
-  | { type: "hit" }
-  | { type: "stand" }
-  | { type: "double" };
+  { type: "deal" } | { type: "hit" } | { type: "stand" } | { type: "double" };
 
 export function reduceRoundState(
   state: RoundState,

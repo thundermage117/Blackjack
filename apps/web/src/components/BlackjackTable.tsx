@@ -21,7 +21,11 @@ function HandCards({
   return (
     <div className={`card-row${isActive ? " is-active" : ""}`}>
       {cards.map((card, index) => (
-        <PlayingCard key={`${card.rank}-${card.suit}-${index}`} card={card} hidden={hideSecond && index === 1} />
+        <PlayingCard
+          key={`${card.rank}-${card.suit}-${index}`}
+          card={card}
+          hidden={hideSecond && index === 1}
+        />
       ))}
     </div>
   );
@@ -52,7 +56,10 @@ export function BlackjackTable() {
       </div>
 
       <div className="hand-grid">
-        <section className={`hand-panel${game.phase === "dealer-turn" ? " is-turn" : ""}`} aria-label="Dealer hand">
+        <section
+          className={`hand-panel${game.phase === "dealer-turn" ? " is-turn" : ""}`}
+          aria-label="Dealer hand"
+        >
           <div className="hand-panel-header">
             <div>
               <p className="hand-label">Dealer</p>
@@ -60,10 +67,17 @@ export function BlackjackTable() {
             </div>
             <p className="hand-detail">{game.dealerSummary.detailLabel}</p>
           </div>
-          <HandCards cards={game.dealerCards} hideSecond={game.dealerHoleHidden} isActive={game.phase === "dealer-turn"} />
+          <HandCards
+            cards={game.dealerCards}
+            hideSecond={game.dealerHoleHidden}
+            isActive={game.phase === "dealer-turn"}
+          />
         </section>
 
-        <section className={`hand-panel${game.phase === "player-turn" ? " is-turn" : ""}`} aria-label="Player hand">
+        <section
+          className={`hand-panel${game.phase === "player-turn" ? " is-turn" : ""}`}
+          aria-label="Player hand"
+        >
           <div className="hand-panel-header">
             <div>
               <p className="hand-label">Player</p>
@@ -77,7 +91,12 @@ export function BlackjackTable() {
 
       <div className="controls-shell">
         <div className="controls primary-controls" role="group" aria-label="Round controls">
-          <button type="button" className="btn btn-primary" onClick={game.dealRound} disabled={!game.canDeal}>
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={game.dealRound}
+            disabled={!game.canDeal}
+          >
             {game.dealLabel}
           </button>
           <button type="button" className="btn" onClick={game.hit} disabled={!game.canHit}>

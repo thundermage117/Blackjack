@@ -1,6 +1,17 @@
 import type { DealerUpcardKey, StrategyAction } from "./types";
 
-export const DEALER_UPCARD_KEYS: DealerUpcardKey[] = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "A"];
+export const DEALER_UPCARD_KEYS: DealerUpcardKey[] = [
+  "2",
+  "3",
+  "4",
+  "5",
+  "6",
+  "7",
+  "8",
+  "9",
+  "10",
+  "A",
+];
 
 export function toRowKey(kind: "hard" | "soft", total: number): string {
   return `${kind}:${total}`;

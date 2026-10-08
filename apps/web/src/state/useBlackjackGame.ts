@@ -72,7 +72,11 @@ function formatStatus(round: RoundState): string {
   return round.phase;
 }
 
-function applyCompletedRoundToStats(stats: SessionStats, prev: RoundState, next: RoundState): SessionStats {
+function applyCompletedRoundToStats(
+  stats: SessionStats,
+  prev: RoundState,
+  next: RoundState,
+): SessionStats {
   const finishedNow = prev.phase !== "round-over" && next.phase === "round-over" && next.result;
   if (!finishedNow) return stats;
 
@@ -227,7 +231,8 @@ export function useBlackjackGame(): BlackjackGameViewModel {
   const canHit = isActionAllowed(round, "hit");
   const canStand = isActionAllowed(round, "stand");
   const canDouble = isActionAllowed(round, "double");
-  const canDeal = !isDealerResolving && round.phase !== "player-turn" && round.phase !== "dealer-turn";
+  const canDeal =
+    !isDealerResolving && round.phase !== "player-turn" && round.phase !== "dealer-turn";
   const canRequestHint =
     !isDealerResolving &&
     round.phase === "player-turn" &&
@@ -253,11 +258,7 @@ export function useBlackjackGame(): BlackjackGameViewModel {
 
   const dealerHoleHidden = round.dealerHoleHidden && !isDealerResolving;
   const dealLabel =
-    round.phase === "round-over"
-      ? reshufflePending
-        ? "Reshuffle & Deal"
-        : "Next Round"
-      : "Deal";
+    round.phase === "round-over" ? (reshufflePending ? "Reshuffle & Deal" : "Next Round") : "Deal";
 
   return {
     phase: displayPhase,
@@ -297,7 +298,11 @@ export function useBlackjackGame(): BlackjackGameViewModel {
     requestHint: () => {
       setState((prev) => {
         const current = prev.round;
-        if (current.phase !== "player-turn" || !current.dealerHand[0] || current.playerHand.length === 0) {
+        if (
+          current.phase !== "player-turn" ||
+          !current.dealerHand[0] ||
+          current.playerHand.length === 0
+        ) {
           return { ...prev, hint: "Hint unavailable right now." };
         }
 

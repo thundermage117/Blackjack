@@ -32,9 +32,7 @@ function asRoundState(partial: Partial<RoundState>): RoundState {
 describe("game-core engine fixtures", () => {
   const fixtures = engineFixtures as EngineFixture[];
 
-  it.each(
-    fixtures.filter((f) => f.id.startsWith("natural-blackjack")),
-  )("$id", (fixture) => {
+  it.each(fixtures.filter((f) => f.id.startsWith("natural-blackjack")))("$id", (fixture) => {
     const playerHand = (fixture.playerHand ?? []).map(parseFixtureCard);
     const dealerHand = (fixture.dealerHand ?? []).map(parseFixtureCard);
     expect(playerHand).toHaveLength(2);
@@ -49,9 +47,7 @@ describe("game-core engine fixtures", () => {
     expect(dealt.phase).toBe("round-over");
   });
 
-  it.each(
-    fixtures.filter((f) => f.id === "soft-total-reduces-ace-on-hit"),
-  )("$id", (fixture) => {
+  it.each(fixtures.filter((f) => f.id === "soft-total-reduces-ace-on-hit"))("$id", (fixture) => {
     const playerHand = (fixture.playerHand ?? []).map(parseFixtureCard);
     const score = scoreHand(playerHand);
 
@@ -60,9 +56,7 @@ describe("game-core engine fixtures", () => {
     expect(score.isBust).toBe(fixture.expected.isBust);
   });
 
-  it.each(
-    fixtures.filter((f) => f.id === "double-only-on-first-two-cards"),
-  )("$id", (fixture) => {
+  it.each(fixtures.filter((f) => f.id === "double-only-on-first-two-cards"))("$id", (fixture) => {
     const playerHand = (fixture.playerHand ?? []).map(parseFixtureCard);
     const state = asRoundState({
       playerHand,
@@ -73,9 +67,7 @@ describe("game-core engine fixtures", () => {
     expect(isActionAllowed(state, "double")).toBe(fixture.expected.doubleAllowed);
   });
 
-  it.each(
-    fixtures.filter((f) => f.id.startsWith("dealer-")),
-  )("$id", (fixture) => {
+  it.each(fixtures.filter((f) => f.id.startsWith("dealer-")))("$id", (fixture) => {
     const dealerHand = (fixture.dealerHand ?? []).map(parseFixtureCard);
     const score = scoreHand(dealerHand);
 

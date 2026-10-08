@@ -3,9 +3,5 @@
   "compilerOptions": {
     "jsx": "react-jsx"
   },
-  "include": [
-    "src",
-    "../../packages/game-core/src",
-    "../../packages/hint-engine/src"
-  ]
+  "include": ["src", "../../packages/game-core/src", "../../packages/hint-engine/src"]
 }
