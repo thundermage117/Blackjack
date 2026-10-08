@@ -35,6 +35,8 @@ All notable changes to this project are documented here. The format is based on
 
 ### Fixed (learning and full table)
 
+- After the dealer's hole card flipped, it vanished and dealt itself in again a moment
+  later, out of step with the rest of the table.
 - Dialogs shared one title id, so screen readers announced the wrong dialog title.
 - Card deal animations could cause sideways scrolling on phones.
 
