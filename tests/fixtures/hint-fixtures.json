@@ -150,5 +150,251 @@
     "dealerUpcard": "6_clubs",
     "doubleAllowed": true,
     "expectedAction": "Hit"
+  },
+  {
+    "id": "pair-aces-split-vs-ace",
+    "ruleset": "multideck-s17",
+    "playerHand": ["A_spades", "A_hearts"],
+    "dealerUpcard": "A_clubs",
+    "doubleAllowed": true,
+    "expectedAction": "Split",
+    "splitAllowed": true
+  },
+  {
+    "id": "pair-eights-split-vs-10",
+    "ruleset": "multideck-s17",
+    "playerHand": ["8_spades", "8_hearts"],
+    "dealerUpcard": "10_clubs",
+    "doubleAllowed": true,
+    "expectedAction": "Split",
+    "splitAllowed": true
+  },
+  {
+    "id": "pair-tens-never-split",
+    "ruleset": "multideck-s17",
+    "playerHand": ["K_spades", "Q_hearts"],
+    "dealerUpcard": "6_clubs",
+    "doubleAllowed": true,
+    "expectedAction": "Stand",
+    "splitAllowed": true
+  },
+  {
+    "id": "pair-nines-stand-vs-7",
+    "ruleset": "multideck-s17",
+    "playerHand": ["9_spades", "9_hearts"],
+    "dealerUpcard": "7_clubs",
+    "doubleAllowed": true,
+    "expectedAction": "Stand",
+    "splitAllowed": true
+  },
+  {
+    "id": "pair-nines-split-vs-8",
+    "ruleset": "multideck-s17",
+    "playerHand": ["9_spades", "9_hearts"],
+    "dealerUpcard": "8_clubs",
+    "doubleAllowed": true,
+    "expectedAction": "Split",
+    "splitAllowed": true
+  },
+  {
+    "id": "pair-fives-double-not-split",
+    "ruleset": "multideck-s17",
+    "playerHand": ["5_spades", "5_hearts"],
+    "dealerUpcard": "6_clubs",
+    "doubleAllowed": true,
+    "expectedAction": "Double",
+    "splitAllowed": true
+  },
+  {
+    "id": "pair-fours-split-vs-5-das",
+    "ruleset": "multideck-s17",
+    "playerHand": ["4_spades", "4_hearts"],
+    "dealerUpcard": "5_clubs",
+    "doubleAllowed": true,
+    "expectedAction": "Split",
+    "splitAllowed": true
+  },
+  {
+    "id": "pair-fours-hit-vs-5-no-das",
+    "ruleset": "multideck-s17",
+    "playerHand": ["4_spades", "4_hearts"],
+    "dealerUpcard": "5_clubs",
+    "doubleAllowed": true,
+    "expectedAction": "Hit",
+    "splitAllowed": true,
+    "rules": {
+      "dealerSoft17": "stand",
+      "doubleAfterSplit": false,
+      "surrender": false
+    }
+  },
+  {
+    "id": "pair-twos-split-vs-2-das",
+    "ruleset": "multideck-s17",
+    "playerHand": ["2_spades", "2_hearts"],
+    "dealerUpcard": "2_clubs",
+    "doubleAllowed": true,
+    "expectedAction": "Split",
+    "splitAllowed": true
+  },
+  {
+    "id": "pair-twos-hit-vs-2-no-das",
+    "ruleset": "multideck-s17",
+    "playerHand": ["2_spades", "2_hearts"],
+    "dealerUpcard": "2_clubs",
+    "doubleAllowed": true,
+    "expectedAction": "Hit",
+    "splitAllowed": true,
+    "rules": {
+      "dealerSoft17": "stand",
+      "doubleAfterSplit": false,
+      "surrender": false
+    }
+  },
+  {
+    "id": "pair-sixes-split-not-allowed-uses-totals",
+    "ruleset": "multideck-s17",
+    "playerHand": ["6_spades", "6_hearts"],
+    "dealerUpcard": "4_clubs",
+    "doubleAllowed": true,
+    "expectedAction": "Stand"
+  },
+  {
+    "id": "h17-hard-11-vs-ace-double",
+    "ruleset": "multideck-h17",
+    "playerHand": ["6_spades", "5_hearts"],
+    "dealerUpcard": "A_clubs",
+    "doubleAllowed": true,
+    "expectedAction": "Double",
+    "rules": {
+      "dealerSoft17": "hit",
+      "doubleAfterSplit": true,
+      "surrender": false
+    }
+  },
+  {
+    "id": "h17-soft-19-vs-6-double",
+    "ruleset": "multideck-h17",
+    "playerHand": ["A_spades", "8_hearts"],
+    "dealerUpcard": "6_clubs",
+    "doubleAllowed": true,
+    "expectedAction": "Double",
+    "rules": {
+      "dealerSoft17": "hit",
+      "doubleAfterSplit": true,
+      "surrender": false
+    }
+  },
+  {
+    "id": "h17-soft-18-vs-2-double",
+    "ruleset": "multideck-h17",
+    "playerHand": ["A_spades", "7_hearts"],
+    "dealerUpcard": "2_clubs",
+    "doubleAllowed": true,
+    "expectedAction": "Double",
+    "rules": {
+      "dealerSoft17": "hit",
+      "doubleAfterSplit": true,
+      "surrender": false
+    }
+  },
+  {
+    "id": "surrender-16-vs-10",
+    "ruleset": "multideck-s17",
+    "playerHand": ["10_spades", "6_hearts"],
+    "dealerUpcard": "10_clubs",
+    "doubleAllowed": true,
+    "expectedAction": "Surrender",
+    "surrenderAllowed": true,
+    "rules": {
+      "dealerSoft17": "stand",
+      "doubleAfterSplit": true,
+      "surrender": true
+    }
+  },
+  {
+    "id": "surrender-15-vs-10",
+    "ruleset": "multideck-s17",
+    "playerHand": ["10_spades", "5_hearts"],
+    "dealerUpcard": "K_clubs",
+    "doubleAllowed": true,
+    "expectedAction": "Surrender",
+    "surrenderAllowed": true,
+    "rules": {
+      "dealerSoft17": "stand",
+      "doubleAfterSplit": true,
+      "surrender": true
+    }
+  },
+  {
+    "id": "surrender-15-vs-ace-s17-hits",
+    "ruleset": "multideck-s17",
+    "playerHand": ["10_spades", "5_hearts"],
+    "dealerUpcard": "A_clubs",
+    "doubleAllowed": true,
+    "expectedAction": "Hit",
+    "surrenderAllowed": true,
+    "rules": {
+      "dealerSoft17": "stand",
+      "doubleAfterSplit": true,
+      "surrender": true
+    }
+  },
+  {
+    "id": "surrender-15-vs-ace-h17",
+    "ruleset": "multideck-h17",
+    "playerHand": ["10_spades", "5_hearts"],
+    "dealerUpcard": "A_clubs",
+    "doubleAllowed": true,
+    "expectedAction": "Surrender",
+    "surrenderAllowed": true,
+    "rules": {
+      "dealerSoft17": "hit",
+      "doubleAfterSplit": true,
+      "surrender": true
+    }
+  },
+  {
+    "id": "surrender-not-allowed-falls-back",
+    "ruleset": "multideck-s17",
+    "playerHand": ["10_spades", "6_hearts"],
+    "dealerUpcard": "10_clubs",
+    "doubleAllowed": true,
+    "expectedAction": "Hit",
+    "rules": {
+      "dealerSoft17": "stand",
+      "doubleAfterSplit": true,
+      "surrender": true
+    }
+  },
+  {
+    "id": "eights-vs-10-split-not-surrender",
+    "ruleset": "multideck-s17",
+    "playerHand": ["8_spades", "8_hearts"],
+    "dealerUpcard": "10_clubs",
+    "doubleAllowed": true,
+    "expectedAction": "Split",
+    "splitAllowed": true,
+    "surrenderAllowed": true,
+    "rules": {
+      "dealerSoft17": "stand",
+      "doubleAfterSplit": true,
+      "surrender": true
+    }
+  },
+  {
+    "id": "h17-eights-vs-ace-surrender",
+    "ruleset": "multideck-h17",
+    "playerHand": ["8_spades", "8_hearts"],
+    "dealerUpcard": "A_clubs",
+    "doubleAllowed": true,
+    "expectedAction": "Surrender",
+    "splitAllowed": true,
+    "surrenderAllowed": true,
+    "rules": {
+      "dealerSoft17": "hit",
+      "doubleAfterSplit": true,
+      "surrender": true
+    }
   }
 ]
