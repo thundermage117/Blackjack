@@ -37,6 +37,10 @@ export default defineConfig({
         globPatterns: ["**/*.{js,css,html,svg,png,woff2}"],
         navigateFallback: "index.html",
         cleanupOutdatedCaches: true,
+        // Take control of the page on first install, so a later update's Reload (which waits
+        // for the new worker to take control) also works in that first tab. Updates still
+        // wait for Reload: only activation claims, and activation waits for SKIP_WAITING.
+        clientsClaim: true,
       },
     }),
   ],

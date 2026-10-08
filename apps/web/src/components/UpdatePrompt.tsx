@@ -13,15 +13,20 @@ export function UpdatePrompt() {
 
   if (!needRefresh) return null;
 
+  // The plugin only reloads tabs that already had a service worker when they opened, so a
+  // first-visit tab would never reload. Reloading on any controller change covers both.
+  const reload = () => {
+    navigator.serviceWorker.addEventListener("controllerchange", () => window.location.reload(), {
+      once: true,
+    });
+    void updateServiceWorker(true);
+  };
+
   return (
     <div className="update-prompt" role="status">
       <p className="update-prompt-text">A new version of the trainer is ready.</p>
       <div className="update-prompt-actions">
-        <button
-          type="button"
-          className="btn btn-primary btn-small"
-          onClick={() => void updateServiceWorker(true)}
-        >
+        <button type="button" className="btn btn-primary btn-small" onClick={reload}>
           Reload
         </button>
         <button
