@@ -8,3 +8,6 @@ coverage
 *.log
 playwright-report
 test-results
+
+# Local Claude Code instructions
+CLAUDE.md
