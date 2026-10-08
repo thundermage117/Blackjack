@@ -1,3 +1,5 @@
+import { CHIP_TONES } from "./chipTones";
+
 interface BetSelectorProps {
   options: readonly number[];
   value: number;
@@ -9,7 +11,6 @@ interface BetSelectorProps {
 export function BetSelector({ options, value, bankroll, disabled, onChange }: BetSelectorProps) {
   return (
     <div className="bet-selector" role="radiogroup" aria-label="Bet size">
-      <span className="bet-label">Bet</span>
       {options.map((option, index) => (
         <button
           key={option}
@@ -17,12 +18,12 @@ export function BetSelector({ options, value, bankroll, disabled, onChange }: Be
           role="radio"
           aria-checked={option === value}
           aria-keyshortcuts={String(index + 1)}
-          className={`chip${option === value ? " is-selected" : ""}`}
+          className={`chip ${CHIP_TONES[option] ?? ""}${option === value ? " is-selected" : ""}`}
           disabled={disabled || option > bankroll}
           onClick={() => onChange(option)}
           title={`Bet $${option} (key ${index + 1})`}
         >
-          ${option}
+          <span className="chip-value">${option}</span>
         </button>
       ))}
     </div>
