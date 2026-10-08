@@ -90,6 +90,27 @@ The app builds to static files. `vercel.json` is configured: import the reposito
 Vercel and it will run `npm run build` and serve `apps/web/dist`. Any static host works the
 same way.
 
+## Roadmap
+
+### Expand to mobile
+
+- Make the web app installable as a PWA (manifest, icons, offline play via a service
+  worker). Everything already runs in the browser, so no backend is needed.
+- Wrap it as native Android and iOS apps (e.g. Capacitor) for the app stores, with native
+  haptics and audio.
+- Mobile polish: landscape layout, larger touch targets for split hands, swipe gestures for
+  hit/stand.
+
+### Security testing
+
+- Dependency scanning: `npm audit` in CI and automated update PRs (Dependabot).
+- Static analysis with GitHub CodeQL.
+- Security headers for the hosted site (Content-Security-Policy, HSTS, `X-Content-Type-Options`)
+  in `vercel.json`, verified by a test.
+- Fuzz the save-file loader (`state/storage.ts`) with random and malicious input.
+- Re-assess the threat model before any backend, accounts or leaderboard: the client is
+  currently trusted, so a leaderboard would need server-side dealing (see ADR-0002).
+
 ## License
 
 See [LICENSE](LICENSE).
