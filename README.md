@@ -3,6 +3,12 @@
 A blackjack **trainer** for the browser. Learn basic strategy step by step, then practise
 card counting, at a table that plays by real casino rules and deals fairly.
 
+<p align="center">
+  <img src="docs/images/table-desktop.png" alt="Desktop: two split hands on the felt, with the coach explaining that tens should never be split" width="68%" />
+  &nbsp;
+  <img src="docs/images/table-mobile.png" alt="Phone: Level 1 with the suggested move, Stand, highlighted" width="24%" />
+</p>
+
 - **Four learning levels**: Basics (hit or stand, with the right move highlighted) →
   Strategy (double and split) → Full table (insurance, surrender, your own table rules) →
   Counting (Hi-Lo running and true count, count checks)
