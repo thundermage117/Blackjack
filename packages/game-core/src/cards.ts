@@ -15,7 +15,24 @@ export function createDeck(deckCount = 1): Card[] {
   return deck;
 }
 
-export function shuffle(cards: Card[], random = Math.random): Card[] {
+/**
+ * Uniform random number in [0, 1) from the platform CSPRNG (`crypto.getRandomValues`),
+ * the default shuffle source. Falls back to Math.random only where Web Crypto is missing.
+ */
+export function secureRandom(): number {
+  const cryptoApi = globalThis.crypto;
+  if (!cryptoApi?.getRandomValues) return Math.random();
+  const buffer = new Uint32Array(1);
+  cryptoApi.getRandomValues(buffer);
+  return buffer[0] / 2 ** 32;
+}
+
+/**
+ * Fisher-Yates shuffle: every permutation is equally likely given a uniform `random`.
+ * With a 32-bit source the modulo-style bias of `floor(r * n)` is below n / 2^32,
+ * i.e. under one in ten million for a 312-card shoe.
+ */
+export function shuffle(cards: Card[], random: () => number = secureRandom): Card[] {
   const copy = [...cards];
   for (let i = copy.length - 1; i > 0; i -= 1) {
     const j = Math.floor(random() * (i + 1));

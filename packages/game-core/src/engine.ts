@@ -1,4 +1,4 @@
-import { createDeck, shuffle } from "./cards";
+import { createDeck, secureRandom, shuffle } from "./cards";
 import { DEFAULT_MVP_RULES } from "./rules";
 import { isPair, scoreHand, shouldDealerDraw } from "./scoring";
 import type {
@@ -38,7 +38,7 @@ function drawCard(shoe: Card[]): { card: Card; shoe: Card[] } {
   return { card, shoe: rest };
 }
 
-function newShuffledShoe(rules: GameRules, random = Math.random): Card[] {
+function newShuffledShoe(rules: GameRules, random: () => number = secureRandom): Card[] {
   return shuffle(createDeck(rules.deckCount), random);
 }
 
@@ -190,7 +190,7 @@ function autoFinishedStatus(hand: PlayerHand): HandStatus | null {
 
 export function createInitialRoundState(
   rules: GameRules = DEFAULT_MVP_RULES,
-  random = Math.random,
+  random: () => number = secureRandom,
 ): RoundState {
   return {
     ...createEmptyRoundState(),
@@ -202,7 +202,7 @@ export function createInitialRoundState(
 export function dealRound(
   state: RoundState = createEmptyRoundState(),
   rules: GameRules = DEFAULT_MVP_RULES,
-  random = Math.random,
+  random: () => number = secureRandom,
 ): RoundState {
   const shouldReshuffle = state.reshufflePending || isBelowReshuffleCutoff(state.shoe, rules);
   let shoe = shouldReshuffle ? newShuffledShoe(rules, random) : state.shoe;
@@ -423,7 +423,7 @@ export function reduceRoundState(
   state: RoundState,
   event: RoundEvent,
   rules: GameRules = DEFAULT_MVP_RULES,
-  random = Math.random,
+  random: () => number = secureRandom,
 ): RoundState {
   switch (event.type) {
     case "deal":

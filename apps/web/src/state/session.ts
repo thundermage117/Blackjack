@@ -1,6 +1,7 @@
 import {
   DEFAULT_TABLE_OPTIONS,
   createInitialRoundState,
+  secureRandom,
   dealRound,
   isActionAllowed,
   playerDouble,
@@ -157,7 +158,7 @@ function withTable(
 
 export function createSession(
   saved: Partial<PersistedSession> = {},
-  random: () => number = Math.random,
+  random: () => number = secureRandom,
 ): SessionState {
   const levelId = saved.level ?? 1;
   const tableOptions = saved.tableOptions ?? DEFAULT_TABLE_OPTIONS;

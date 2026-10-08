@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
-import { createSeededRandom, type GameRules, type TableOptions } from "@blackjack/game-core";
+import {
+  createSeededRandom,
+  secureRandom,
+  type GameRules,
+  type TableOptions,
+} from "@blackjack/game-core";
 import type { StrategyTable } from "@blackjack/hint-engine";
 import { cuesForTableChange, type SoundCue } from "../audio/cues";
 import { vibrateFor } from "../audio/haptics";
@@ -119,9 +124,9 @@ export interface GameViewModel {
 
 /** `?seed=123` gives a reproducible shoe (used by the end-to-end tests). */
 function randomFromUrl(): () => number {
-  if (typeof window === "undefined") return Math.random;
+  if (typeof window === "undefined") return secureRandom;
   const seed = new URLSearchParams(window.location.search).get("seed");
-  return seed !== null && /^\d+$/.test(seed) ? createSeededRandom(Number(seed)) : Math.random;
+  return seed !== null && /^\d+$/.test(seed) ? createSeededRandom(Number(seed)) : secureRandom;
 }
 
 function initSession(): SessionState {
