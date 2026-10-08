@@ -2,8 +2,8 @@
 
 Last updated: 2026-10-08
 
-This document describes the app as it is actually built. `Specifications.md` and the
-PlantUML diagrams in the repository root describe the originally planned full-stack design.
+This document describes the app as it is actually built. `planning/Specifications.md` and the
+PlantUML diagrams next to it describe the originally planned full-stack design.
 Where they differ, this document and the [ADRs](adr/README.md) are authoritative.
 
 ## Overview
@@ -110,7 +110,7 @@ sequenceDiagram
 
 ## Not built yet
 
-- Backend stats API (Express + MongoDB) and the `/api/*` endpoints in `Specifications.md`
+- Backend stats API (Express + MongoDB) and the `/api/*` endpoints in `planning/Specifications.md`
 - Single- and double-deck strategy
 - Hosted deployment: the app is deploy-ready (`vercel.json`) but not connected to a
   Vercel project

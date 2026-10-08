@@ -76,7 +76,7 @@ packages/game-core/    cards, rules, round engine, settlement, Hi-Lo counting (p
 packages/hint-engine/  generated strategy tables and lookup (pure TS)
 tests/                 Vitest suites, fixtures, simulation helper
 e2e/                   Playwright end-to-end tests
-docs/                  rules, architecture, strategy format, ADRs
+docs/                  rules, architecture, strategy format, ADRs, original plans
 ```
 
 ## Documentation
@@ -87,8 +87,9 @@ docs/                  rules, architecture, strategy format, ADRs
 - [Hint strategy table format](docs/hint-strategy-format.md)
 - [Contributing](CONTRIBUTING.md): code style, tests and commit conventions
 - [Changelog](CHANGELOG.md)
-- Original planning documents: [ProjectPlan.md](ProjectPlan.md),
-  [Requirements.md](Requirements.md), [Specifications.md](Specifications.md)
+- Original planning documents (in [`docs/planning/`](docs/planning)):
+  [project plan](docs/planning/ProjectPlan.md), [requirements](docs/planning/Requirements.md),
+  [specifications](docs/planning/Specifications.md) and PlantUML diagrams
 
 ## Deployment
 
