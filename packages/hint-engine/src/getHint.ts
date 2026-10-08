@@ -8,7 +8,7 @@ function doubleFallbackAction(query: HintQuery): HintAction {
 
   // MVP soft-hand rows in the scaffold use:
   // soft 13-17: double else hit
-  // soft 18-19 (specific spots): double else stand
+  // soft 18 (vs 3-6): double else stand
   if (query.total >= 18) return "Stand";
   return "Hit";
 }
