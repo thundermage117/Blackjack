@@ -148,6 +148,17 @@ The MVP is complete when all of the following are true:
 | Milestone | Status |
 |---|---|
 | 1. Rules locked + test scenarios | Done ([docs/rules.md](docs/rules.md), `tests/fixtures`) |
+| 2. Game engine passes core tests | Done, now including splits, insurance and surrender |
+| 3. Hint engine matches strategy fixtures | Done for all 8 table variants; long-run simulation matches published house edge |
+| 4. Playable frontend MVP (local) | Done, extended into a learning trainer with 4 levels |
+| 5. Deployed MVP | Ready (`vercel.json`); needs a Vercel project connected |
+| 6. Post-MVP persistent stats | Not started (stats and the hand in progress persist locally, see ADR-0011) |
+
+The "Out of Scope for MVP" items splits, insurance and surrender have since been built
+(ADR-0008), as has the "configurable table rules" enhancement (ADR-0009).
+
+---|---|
+| 1. Rules locked + test scenarios | Done ([docs/rules.md](docs/rules.md), `tests/fixtures`) |
 | 2. Game engine passes core tests | Done |
 | 3. Hint engine matches strategy fixtures | Done (table corrected to 6-deck S17) |
 | 4. Playable frontend MVP (local) | Done: betting, sound, dealer reveal, persistence |

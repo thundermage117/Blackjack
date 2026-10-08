@@ -12,7 +12,8 @@ Node 20+ is required (CI uses Node 20).
 ## Before you push
 
 ```bash
-npm run check    # format check, lint, typecheck, tests (same as CI)
+npm run check    # format check, lint, typecheck, unit tests (same as CI)
+npm run test:e2e # Playwright end-to-end tests (also in CI)
 npm run format   # auto-fix formatting
 ```
 
@@ -36,12 +37,29 @@ npm run format   # auto-fix formatting
 
 ## Tests
 
-- Tests live in `tests/` and run with Vitest (`npm test`).
-- Engine tests use **stacked shoes** (`tests/helpers/fixtureCards.ts`). List cards in deal
-  order (player, dealer upcard, player, dealer hole, then draws) so outcomes are deterministic.
+- **Unit tests** live in `tests/` and run with Vitest (`npm test`).
+- Engine tests use **stacked shoes** (`buildPaddedShoe` in `tests/helpers/fixtureCards.ts`).
+  List cards in deal order (player, dealer upcard, player, dealer hole, then draws). They
+  are moved to the top of a real six-deck shoe, so the shoe stays complete and Hi-Lo counts
+  stay correct.
 - Rule and strategy expectations live in `tests/fixtures/*.json`. Keep fixture IDs stable.
-- New logic in a pure module needs tests. React wiring is covered by the manual smoke test in
-  [`docs/rules.md`](docs/rules.md).
+- **Fairness tests** (`tests/game-core.fairness.test.ts`) use fixed seeds, so statistical
+  checks are deterministic. Never assert statistics on unseeded randomness with a tight
+  threshold. `tests/helpers/simulate.ts` plays many hands with a policy, if you need
+  long-run numbers.
+- **End-to-end tests** live in `e2e/` and run with Playwright (`npm run test:e2e`; the first
+  time, run `npx playwright install chromium`). They build the app and run against
+  `vite preview` on desktop and phone viewports. Use `startAt(page, { level, seed })` and
+  pick a seed that deals the hand you need. Any console error fails the test.
+- New logic in a pure module needs unit tests. New UI flows need an e2e test. Sound and
+  vibration are checked by hand (see the smoke test in [`docs/rules.md`](docs/rules.md)).
+
+## Learning levels
+
+Gate features through the level definition in `apps/web/src/learning/levels.ts`
+(`level.actions.*`, `level.assists.*`), never by comparing level numbers. If a feature
+changes what the engine allows, switch it off in `rulesForLevel` so hints and the engine
+agree. See ADR-0010.
 
 ## Changing rules or strategy
 

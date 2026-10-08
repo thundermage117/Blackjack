@@ -2,103 +2,115 @@
 
 Last updated: 2026-10-08
 
-This document describes the MVP as it is actually built. `Specifications.md` and the PlantUML
-diagrams in the repository root describe the originally planned full-stack design. Where they
-differ, this document and the [ADRs](adr/README.md) are authoritative.
+This document describes the app as it is actually built. `Specifications.md` and the
+PlantUML diagrams in the repository root describe the originally planned full-stack design.
+Where they differ, this document and the [ADRs](adr/README.md) are authoritative.
 
 ## Overview
 
-The MVP is a static single-page app. All game rules, strategy and state run in the browser
-([ADR-0002](adr/0002-frontend-only-mvp-with-pure-packages.md)).
+A static single-page app. All game rules, strategy, learning logic and state run in the
+browser ([ADR-0002](adr/0002-frontend-only-mvp-with-pure-packages.md)).
 
 ```mermaid
 flowchart TD
   subgraph web["apps/web (React)"]
-    Table["components/BlackjackTable<br/>BetSelector · PlayingCard"]
-    Hook["state/useBlackjackGame<br/>(timers, persistence, sound wiring)"]
-    Session["state/session<br/>pure reducer: bankroll, bets, hints, dealer reveal"]
+    Screen["components/BlackjackTable<br/>TableFelt · Hand · ActionBar · CoachPanel · dialogs"]
+    Hook["state/useBlackjackGame<br/>(timers, persistence, sound, a11y wiring)"]
+    Session["state/session<br/>pure reducer: bankroll, levels, trainer, reveal, count checks"]
     View["state/tableView<br/>what is visible right now"]
-    Cues["audio/cues<br/>table change → sound cues"]
-    Engine["audio/soundEngine<br/>Web Audio synthesis"]
-    Storage["state/storage<br/>localStorage"]
-    Keys["hooks/useKeyboardShortcuts"]
+    Learning["learning/*<br/>levels · trainer · explanations · counting · chart"]
+    Cues["audio/cues + announcements<br/>table change → sounds / screen-reader text"]
+    Engine["audio/soundEngine + haptics"]
+    Storage["state/storage<br/>localStorage v2"]
   end
-  Core["packages/game-core<br/>cards · scoring · engine · settlement"]
-  Hint["packages/hint-engine<br/>strategy table · getHint"]
+  Core["packages/game-core<br/>cards · rules · engine · settlement · counting"]
+  Hint["packages/hint-engine<br/>strategy tables · getHint"]
 
-  Table --> Hook
-  Table --> Keys
+  Screen --> Hook
   Hook --> Session
   Hook --> View
   Hook --> Cues --> Engine
   Hook --> Storage
+  Session --> Learning
   Session --> Core
-  Session --> Hint
+  Learning --> Hint
+  Learning --> Core
   View --> Core
 ```
 
 ## Layers
 
-| Layer               | Location                                            | Purity                     | Tested by                           |
-| ------------------- | --------------------------------------------------- | -------------------------- | ----------------------------------- |
-| Rules engine        | `packages/game-core`                                | Pure (injectable `random`) | `tests/game-core.*`                 |
-| Strategy / hints    | `packages/hint-engine`                              | Pure, data-driven table    | `tests/hint-engine.*`               |
-| Session reducer     | `apps/web/src/state/session.ts`                     | Pure                       | `tests/web.session.test.ts`         |
-| Table view + cues   | `state/tableView.ts`, `audio/cues.ts`               | Pure                       | `tests/web.sound-cues.test.ts`      |
-| Persistence         | `state/storage.ts`                                  | Injectable storage         | `tests/web.storage.test.ts`         |
-| React wiring, audio | `useBlackjackGame.ts`, `soundEngine.ts`, components | Effects                    | Manual smoke test (`docs/rules.md`) |
+| Layer                  | Location                                                        | Purity                     | Tested by                                                         |
+| ---------------------- | --------------------------------------------------------------- | -------------------------- | ----------------------------------------------------------------- |
+| Rules engine           | `packages/game-core`                                            | Pure (injectable `random`) | `tests/game-core.*`                                               |
+| Strategy / hints       | `packages/hint-engine`                                          | Pure, generated tables     | `tests/hint-engine.*`                                             |
+| Learning               | `apps/web/src/learning`                                         | Pure                       | `tests/web.learning.test.ts`                                      |
+| Session reducer        | `apps/web/src/state/session.ts`                                 | Pure                       | `tests/web.session.test.ts`                                       |
+| Table view, cues, a11y | `state/tableView.ts`, `audio/cues.ts`, `state/announcements.ts` | Pure                       | `tests/web.sound-cues.test.ts`, `tests/web.announcements.test.ts` |
+| Persistence            | `state/storage.ts`                                              | Injectable storage         | `tests/web.storage.test.ts`                                       |
+| Fairness               | shuffle, RNG, full simulation                                   |                            | `tests/game-core.fairness.test.ts`                                |
+| React wiring, audio    | hook, components, `soundEngine.ts`                              | Effects                    | Playwright `e2e/` + manual                                        |
 
-The rule of thumb: logic that decides **what happens** is pure and unit-tested; code that
-decides **when** (timers) or **how it looks and sounds** lives in the React layer.
+Rule of thumb: logic that decides **what happens** is pure and unit-tested. Code that
+decides **when** (timers) or **how it looks and sounds** lives in the React layer and is
+covered end to end.
+
+## Key concepts
+
+- **Rounds have many hands.** `RoundState.playerHands` plus `activeHandIndex` model splits.
+  Insurance is its own phase, and late surrender a hand status
+  ([ADR-0008](adr/0008-multi-hand-rounds-splits-insurance-surrender.md)).
+- **Rules are data.** `createRules(TableOptions)` builds engine rules, and
+  `strategyTableFor(...)` builds the matching strategy table
+  ([ADR-0009](adr/0009-table-rule-variants-and-strategy-tables.md)).
+- **Levels are config.** `rulesForLevel` switches locked actions off in the engine rules,
+  so the engine enforces the level and hints never suggest a locked move
+  ([ADR-0010](adr/0010-progressive-learning-levels.md)).
+- **The trainer grades before acting.** On every decision the reducer asks for the
+  recommendation, grades the choice, then applies the action.
+- **Atomic engine, staged presentation.** The engine resolves the dealer in one call; the UI
+  reveals it card by card ([ADR-0007](adr/0007-staged-dealer-reveal-in-ui-layer.md)).
+- **Sound and announcements follow the table.** Both are pure diffs of `TableView`
+  ([ADR-0004](adr/0004-synthesized-sound-with-web-audio.md)).
+- **Fair by construction and by test.** CSPRNG shuffle, plus statistical tests
+  ([ADR-0012](adr/0012-csprng-shuffle-and-fairness-testing.md)).
 
 ## A hand, end to end
 
 ```mermaid
 sequenceDiagram
   actor Player
-  participant UI as BlackjackTable
+  participant UI as Components
   participant Hook as useBlackjackGame
   participant Reducer as sessionReducer
+  participant Trainer as learning/trainer
   participant Core as game-core
-  participant Sound as SoundEngine
+  participant Out as Sound / haptics / live region
 
   Player->>UI: Deal (click or N)
-  UI->>Hook: dealRound()
   Hook->>Reducer: { type: "deal" }
-  Reducer->>Core: dealRound(round)
-  Core-->>Reducer: player-turn (or round-over on a natural)
-  Hook->>Sound: cuesForTableChange → deal ×4
-  Player->>UI: Stand (click or S)
-  Hook->>Reducer: { type: "stand" }
-  Reducer->>Core: playerStand(round)
-  Core-->>Reducer: round-over, full dealer hand
-  Note over Reducer: dealerReveal = { visibleCount: 1 }<br/>settlement deferred
+  Reducer->>Core: dealRound(round, rules, random)
+  Core-->>Reducer: insurance | player-turn | round-over (natural)
+  Hook->>Out: cuesForTableChange / announcement
+  Player->>UI: Split (P)
+  Hook->>Reducer: { type: "split" }
+  Reducer->>Trainer: recommendPlay → grade("Split")
+  Reducer->>Core: playerSplit
+  Note over Reducer: feedback + trainer stats updated
+  Player->>UI: Stand on each hand
+  Reducer->>Core: playerStand → dealer plays → round-over
+  Note over Reducer: dealerReveal = { visibleCount: 1 }
   loop every 450–600 ms
-    Hook->>Reducer: { type: "reveal-step" }
-    Hook->>Sound: flip / deal
+    Hook->>Reducer: reveal-step
+    Hook->>Out: flip / deal
   end
-  Reducer->>Core: settleWager(result, bet, doubled)
-  Reducer-->>Hook: stats + bankroll updated
-  Hook->>Sound: win / lose / push / blackjack
+  Reducer->>Core: settleRound(round, bet, rules)
+  Hook->>Out: win / lose / push, result announcement
 ```
-
-## Key design points
-
-- **Atomic engine, staged presentation.** The engine resolves the dealer's hand in one call.
-  The reveal is a UI concern ([ADR-0007](adr/0007-staged-dealer-reveal-in-ui-layer.md)).
-- **Bet-agnostic engine.** Money is handled by `settleWager`, outside round state
-  ([ADR-0006](adr/0006-bet-agnostic-engine-with-settlement.md)).
-- **Sound follows the table, not the buttons.** This keeps audio in sync with animations
-  ([ADR-0004](adr/0004-synthesized-sound-with-web-audio.md)).
-- **One ruleset, checked in tests.** `DEFAULT_MVP_RULES` (6 decks, S17, 3:2, double on any
-  first two cards, reshuffle below 15 cards) must match the strategy table metadata, and
-  `tests/hint-engine.table.test.ts` enforces this.
 
 ## Not built yet
 
-These come from the project plan and are still open:
-
 - Backend stats API (Express + MongoDB) and the `/api/*` endpoints in `Specifications.md`
-- Splits, insurance, surrender
-- Hosted deployment. The app is deploy-ready: `vercel.json` is configured, but it needs to
-  be connected to a Vercel project.
+- Single- and double-deck strategy
+- Hosted deployment: the app is deploy-ready (`vercel.json`) but not connected to a
+  Vercel project
