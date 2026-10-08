@@ -23,7 +23,8 @@ export function runningCount(
   shoe: readonly Card[],
   unseenDealtCards: readonly Card[] = [],
 ): number {
-  return -hiLoSum(shoe) - hiLoSum(unseenDealtCards);
+  // `+ 0` turns -0 into 0.
+  return -hiLoSum(shoe) - hiLoSum(unseenDealtCards) + 0;
 }
 
 /** Running count divided by decks remaining, rounded to the nearest half deck. */
