@@ -5,6 +5,10 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+## 0.1.1 - 2026-10-09
+
+Android build for testing; not published as a GitHub release.
+
 ### Fixed
 
 - On narrower phones (360px wide and below), the move button labels, most visibly
