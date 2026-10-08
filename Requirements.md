@@ -5,6 +5,8 @@
 **Version**: 1.0  
 **Date**: 2025-06-17
 
+> **Note (2026-10-08):** This is the original planning document. For what was actually built, see [docs/architecture.md](docs/architecture.md) and the [ADRs](docs/adr/README.md).
+
 ---
 
 ## 1. 📘 Introduction

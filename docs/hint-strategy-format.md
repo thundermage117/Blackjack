@@ -1,7 +1,7 @@
 # Hint Strategy Table Format (Data-Driven)
 
-Version: 1.1
-Last updated: 2026-02-26
+Version: 1.2
+Last updated: 2026-10-08
 
 ## Goal
 
@@ -134,3 +134,19 @@ Given a player hand and dealer upcard:
 - No unsupported action values
 - Metadata must match current engine rules (`dealerSoft17`, deck count assumptions)
 - Tests should fail if a requested row or upcard is missing
+
+## Table Change Log
+
+Any change to a table cell must update `tests/fixtures/hint-fixtures.json` in the same commit.
+
+### 1.2 (2026-10-08): align `blackjack-mvp-s17` with 6-deck S17 basic strategy
+
+| Cell           | Before | After | Reason                                                  |
+| -------------- | ------ | ----- | ------------------------------------------------------- |
+| `soft:13` v5-6 | H      | D     | Standard multi-deck play; `getHint` fallback assumed it |
+| `soft:14` v5-6 | H      | D     | Same as above                                           |
+| `soft:19` v6   | D      | S     | Doubling soft 19 vs 6 is the H17 play, not S17          |
+| `hard:11` vA   | D      | H     | Doubling 11 vs A is the H17 play for 6 decks            |
+
+`tests/hint-engine.table.test.ts` also checks that every row covers all dealer upcards and that
+the table metadata matches `DEFAULT_MVP_RULES`.

@@ -143,6 +143,17 @@ The MVP is complete when all of the following are true:
 5. **Deployed MVP**
 6. **Post-MVP Persistent Stats (Optional)**
 
+### Status (2026-10-08)
+
+| Milestone | Status |
+|---|---|
+| 1. Rules locked + test scenarios | Done ([docs/rules.md](docs/rules.md), `tests/fixtures`) |
+| 2. Game engine passes core tests | Done |
+| 3. Hint engine matches strategy fixtures | Done (table corrected to 6-deck S17) |
+| 4. Playable frontend MVP (local) | Done: betting, sound, dealer reveal, persistence |
+| 5. Deployed MVP | Ready (`vercel.json`); needs a Vercel project connected |
+| 6. Post-MVP persistent stats | Not started (local stats persist via localStorage, see ADR-0005) |
+
 ---
 
 ## Testing Strategy

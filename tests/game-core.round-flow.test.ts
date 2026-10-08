@@ -68,6 +68,7 @@ describe("player action guards", () => {
     const hit = playerHit(dealt);
 
     expect(scoreHand(hit.playerHand).bestTotal).toBe(21);
+    expect(scoreHand(hit.playerHand).isBlackjack).toBe(false);
     expect(isActionAllowed(hit, "hit")).toBe(false);
     expect(isActionAllowed(hit, "stand")).toBe(true);
   });

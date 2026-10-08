@@ -1,7 +1,7 @@
 # Blackjack Rules and MVP Acceptance Checklist
 
-Version: 1.1
-Last updated: 2026-02-26
+Version: 1.2
+Last updated: 2026-10-08
 
 ## Ruleset (MVP Baseline)
 
@@ -27,6 +27,8 @@ If any rule changes, update:
 - Double allowed on first two cards only
 - Double draws exactly one additional card, then player stands
 - Push returns original bet
+- Play-money bankroll starts at $1,000; bets are $10, $25, $50 or $100, chosen between hands
+- Doubling requires the bankroll to cover twice the bet
 - Dealer completes hand only after player stands/doubles (unless player busts)
 
 ### Round Flow
@@ -49,26 +51,27 @@ If any rule changes, update:
 
 ## Acceptance Checklist (MVP Exit)
 
-Mark complete only after tests or repeatable manual checks pass.
+Mark complete only after tests or repeatable manual checks pass. Each item names where it is
+verified (`tests/…` files, or _manual_ for the smoke test below).
 
-- [ ] Initial deal gives 2 cards to player and 2 cards to dealer
-- [ ] Dealer shows one upcard and one hidden card in UI
-- [ ] Player can hit while round is in player-turn phase
-- [ ] Player cannot hit after stand
-- [ ] Player cannot double after taking a hit
-- [ ] Double action draws exactly one card and ends player turn
-- [ ] Ace scoring correctly switches between 11 and 1
-- [ ] Natural blackjack detected on initial two cards only
-- [ ] Blackjack vs dealer blackjack resolves as push
-- [ ] Dealer stands on soft 17
-- [ ] Dealer draws on soft 16
-- [ ] Dealer draw loop terminates at valid stop condition
-- [ ] Round resolves correctly for win/loss/push
-- [ ] Blackjack payout uses 3:2 (and not 1:1)
-- [ ] Hint button is disabled when no hint is valid (round over/loading)
-- [ ] Hint output matches fixture expectations for current ruleset
-- [ ] Session stats increment correctly after each completed round
-- [ ] UI remains usable on mobile width (e.g. 375px)
+- [x] Initial deal gives 2 cards to player and 2 cards to dealer (`game-core.round-flow`)
+- [x] Dealer shows one upcard and one hidden card in UI (`game-core.round-flow` + manual)
+- [x] Player can hit while round is in player-turn phase (`game-core.round-flow`)
+- [x] Player cannot hit after stand (`game-core.round-flow`)
+- [x] Player cannot double after taking a hit (`game-core.engine`, `game-core.round-flow`)
+- [x] Double action draws exactly one card and ends player turn (`game-core.round-flow`)
+- [x] Ace scoring correctly switches between 11 and 1 (`game-core.engine`)
+- [x] Natural blackjack detected on initial two cards only (`game-core.engine`, `game-core.round-flow`)
+- [x] Blackjack vs dealer blackjack resolves as push (`game-core.engine`)
+- [x] Dealer stands on soft 17 (`game-core.engine`)
+- [x] Dealer draws on soft 16 (`game-core.engine`)
+- [x] Dealer draw loop terminates at valid stop condition (`game-core.round-flow`)
+- [x] Round resolves correctly for win/loss/push (`game-core.round-flow`)
+- [x] Blackjack payout uses 3:2 (and not 1:1) (`game-core.settlement`, `web.session`)
+- [x] Hint button is disabled when no hint is valid (round over/loading) (`web.session` (`canRequestHint`))
+- [x] Hint output matches fixture expectations for current ruleset (`hint-engine.fixtures`, `hint-engine.table`)
+- [x] Session stats increment correctly after each completed round (`web.session`)
+- [x] UI remains usable on mobile width (e.g. 375px) (manual)
 
 ## Manual Smoke Test Script
 
@@ -79,7 +82,12 @@ Use this for quick regression checks during UI development.
 3. Play until stand or bust.
 4. Confirm dealer turn and result banner.
 5. Start another round and confirm stats update.
-6. Repeat on desktop and mobile viewport.
+6. Change the bet chip between hands; confirm it is locked during a hand.
+7. Stand on a hand and confirm the dealer cards reveal one at a time, with a flip sound for the
+   hole card and a snap for each draw, followed by an outcome sound.
+8. Press `M` and confirm sound stops; reload and confirm it stays muted.
+9. Reload the page and confirm bankroll, record and bet are restored.
+10. Repeat on desktop and mobile viewport (375px wide, no horizontal scrolling).
 
 ## Notes for Future Rule Changes
 
