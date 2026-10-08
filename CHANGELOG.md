@@ -5,6 +5,8 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-10-08
+
 ### Added (mobile)
 
 - Install the trainer to your home screen (Android, iOS, desktop Chrome and Edge). It opens
@@ -76,3 +78,6 @@ All notable changes to this project are documented here. The format is based on
 - Strategy table now matches 6-deck S17 basic strategy: soft 13/14 double vs 5-6, soft 19
   stands vs 6, hard 11 hits vs Ace.
 - `npm run typecheck` no longer writes `.js` files next to the TypeScript sources.
+
+[Unreleased]: https://github.com/thundermage117/Blackjack/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/thundermage117/Blackjack/releases/tag/v0.1.0

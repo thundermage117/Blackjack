@@ -35,6 +35,10 @@ Open the URL Vite prints (usually `http://localhost:5173`). Requires Node 20+.
 
 ## Android app
 
+To just install it, download the signed APK from the
+[latest release](https://github.com/thundermage117/Blackjack/releases/latest) and open it on
+your phone (allow "install unknown apps" when asked).
+
 The trainer also builds as an Android app with [Capacitor](https://capacitorjs.com)
 ([ADR-0015](docs/adr/0015-android-app-with-capacitor.md)). It needs JDK 21 and the
 Android SDK:
