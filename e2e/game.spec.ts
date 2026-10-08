@@ -151,3 +151,63 @@ test("cards already on the table never replay the deal animation", async ({ page
     "flipIn",
   ]);
 });
+
+for (const [moves, level, tableOptions] of [
+  [4, 2, undefined],
+  [
+    5,
+    3,
+    {
+      deckCount: 6,
+      dealerSoft17: "stand",
+      doubleAfterSplit: true,
+      surrender: true,
+      blackjackPayout: 1.5,
+    },
+  ],
+] as const) {
+  test(`every row of ${moves} move buttons is centred`, async ({ page }) => {
+    await startAt(page, { level, seed: 1, tableOptions });
+    await dealButton(page).click();
+    const group = page.getByRole("group", { name: "Your move" });
+    await expect(group.locator(".btn")).toHaveCount(moves);
+
+    // Group buttons into rows by their top edge, then compare each row's side gaps.
+    const offCentre = await group.locator(".action-buttons").evaluate((row) => {
+      const box = row.getBoundingClientRect();
+      const rows = new Map<number, DOMRect[]>();
+      for (const button of row.children) {
+        const rect = button.getBoundingClientRect();
+        const top = Math.round(rect.top / 10);
+        rows.set(top, [...(rows.get(top) ?? []), rect]);
+      }
+      return [...rows.values()].map((rects) => {
+        const left = Math.min(...rects.map((r) => r.left)) - box.left;
+        const right = box.right - Math.max(...rects.map((r) => r.right));
+        return Math.round(Math.abs(left - right));
+      });
+    });
+    for (const gap of offCentre) expect(gap).toBeLessThanOrEqual(2);
+  });
+
+  test(`the labels of ${moves} move buttons are centred on a 360px phone`, async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 780 });
+    await startAt(page, { level, seed: 1, tableOptions });
+    await dealButton(page).click();
+    const buttons = page.getByRole("group", { name: "Your move" }).locator(".btn");
+    await expect(buttons).toHaveCount(moves);
+
+    const offCentre = await buttons.evaluateAll((els) =>
+      els.map((el) => {
+        const range = document.createRange();
+        range.selectNodeContents(el.firstChild!);
+        const text = range.getBoundingClientRect();
+        const box = el.getBoundingClientRect();
+        const gap = Math.abs(text.left - box.left - (box.right - text.right));
+        return `${el.firstChild!.textContent}: ${Math.round(gap)}`;
+      }),
+    );
+    for (const entry of offCentre)
+      expect(Number(entry.split(": ")[1]), entry).toBeLessThanOrEqual(2);
+  });
+}
