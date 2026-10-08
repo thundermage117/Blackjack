@@ -274,6 +274,8 @@ input {
 }
 
 .net-pill {
+  flex: none;
+  white-space: nowrap;
   font-weight: 700;
   font-size: 0.9rem;
   padding: 0.15rem 0.6rem;
