@@ -1,32 +1,38 @@
 import { createDeck, shuffle } from "./cards";
-import { scoreHand, shouldDealerDraw } from "./scoring";
-import type { Card, GameRules, HandScore, PlayerAction, RoundResult, RoundState } from "./types";
-
-export const DEFAULT_MVP_RULES: GameRules = {
-  dealerSoft17: "stand",
-  blackjackPayout: 1.5,
-  allowDouble: true,
-  allowSplit: false,
-  allowSurrender: false,
-  deckCount: 6,
-  reshuffleCutoffCards: 15,
-};
+import { DEFAULT_MVP_RULES } from "./rules";
+import { isPair, scoreHand, shouldDealerDraw } from "./scoring";
+import type {
+  Card,
+  GameRules,
+  HandScore,
+  HandStatus,
+  PlayerAction,
+  PlayerHand,
+  RoundResult,
+  RoundState,
+} from "./types";
 
 export function createEmptyRoundState(): RoundState {
   return {
     phase: "idle",
     shoe: [],
     reshufflePending: false,
-    playerHand: [],
+    playerHands: [],
+    activeHandIndex: 0,
     dealerHand: [],
     dealerHoleHidden: false,
-    playerActionsTaken: [],
+    insurance: "none",
   };
+}
+
+function newHand(cards: Card[], fromSplit = false): PlayerHand {
+  return { cards, actions: [], status: "playing", fromSplit };
 }
 
 function drawCard(shoe: Card[]): { card: Card; shoe: Card[] } {
   const [card, ...rest] = shoe;
   if (!card) {
+    // The cut card (reshuffleCutoffCards) leaves far more cards than any round can use.
     throw new Error("Cannot draw card from empty shoe");
   }
   return { card, shoe: rest };
@@ -41,100 +47,146 @@ function isBelowReshuffleCutoff(shoe: Card[], rules: GameRules): boolean {
 }
 
 function withShoeStatus(state: RoundState, rules: GameRules): RoundState {
+  return { ...state, reshufflePending: isBelowReshuffleCutoff(state.shoe, rules) };
+}
+
+function replaceHand(state: RoundState, index: number, hand: PlayerHand): RoundState {
   return {
     ...state,
-    reshufflePending: isBelowReshuffleCutoff(state.shoe, rules),
+    playerHands: state.playerHands.map((existing, i) => (i === index ? hand : existing)),
   };
 }
 
-function messageForResult(result: RoundResult, player: HandScore, dealer: HandScore): string {
-  if (result === "blackjack_win") return "Blackjack! Player wins.";
-  if (player.isBust) return `Player busts with ${player.bestTotal}. Dealer wins.`;
-  if (dealer.isBust) return `Dealer busts with ${dealer.bestTotal}. Player wins.`;
-  if (result === "lose" && dealer.isBlackjack) return "Dealer has blackjack. Dealer wins.";
-  if (result === "push") return `Push (${player.bestTotal} vs ${dealer.bestTotal})`;
-  if (result === "win") return `Player wins (${player.bestTotal} vs ${dealer.bestTotal})`;
-  return `Dealer wins (${dealer.bestTotal} vs ${player.bestTotal})`;
+export function getActiveHand(state: RoundState): PlayerHand | undefined {
+  if (state.phase !== "player-turn") return undefined;
+  return state.playerHands[state.activeHandIndex];
 }
 
-function resolveRoundResult(playerHand: Card[], dealerHand: Card[]): RoundResult {
-  const player = scoreHand(playerHand);
-  const dealer = scoreHand(dealerHand);
+export function isSplitAcesHand(hand: PlayerHand): boolean {
+  return hand.fromSplit && hand.cards[0]?.rank === "A";
+}
 
+// ---------------------------------------------------------------------------
+// Resolution
+
+function resultForHand(hand: PlayerHand, dealer: HandScore): RoundResult {
+  const player = scoreHand(hand.cards);
+  if (hand.status === "surrendered") return "surrender";
+  if (hand.status === "blackjack") return dealer.isBlackjack ? "push" : "blackjack_win";
   if (player.isBust) return "lose";
+  if (dealer.isBlackjack) return "lose";
   if (dealer.isBust) return "win";
   if (player.bestTotal > dealer.bestTotal) return "win";
   if (player.bestTotal < dealer.bestTotal) return "lose";
   return "push";
 }
 
-function withResolvedRound(
-  base: RoundState,
-  result: RoundResult | undefined,
-  rules: GameRules = DEFAULT_MVP_RULES,
-): RoundState {
-  if (!result) return base;
+function messageForHand(hand: PlayerHand, dealer: HandScore): string {
+  const player = scoreHand(hand.cards);
+  const result = hand.result;
+  if (result === "blackjack_win") return "Blackjack! Player wins.";
+  if (result === "surrender") return "Player surrenders. Half the bet is returned.";
+  if (player.isBust) return `Player busts with ${player.bestTotal}. Dealer wins.`;
+  if (result === "push" && hand.status === "blackjack") return "Both have blackjack. Push.";
+  if (dealer.isBlackjack) return "Dealer has blackjack. Dealer wins.";
+  if (dealer.isBust) return `Dealer busts with ${dealer.bestTotal}. Player wins.`;
+  if (result === "push") return `Push (${player.bestTotal} vs ${dealer.bestTotal})`;
+  if (result === "win") return `Player wins (${player.bestTotal} vs ${dealer.bestTotal})`;
+  return `Dealer wins (${dealer.bestTotal} vs ${player.bestTotal})`;
+}
 
-  const playerScore = scoreHand(base.playerHand);
-  const dealerScore = scoreHand(base.dealerHand);
+function shortResult(result: RoundResult | undefined): string {
+  if (result === "blackjack_win") return "blackjack";
+  return result ?? "pending";
+}
+
+function resolveRound(state: RoundState, rules: GameRules): RoundState {
+  const dealer = scoreHand(state.dealerHand);
+  const playerHands = state.playerHands.map((hand) => ({
+    ...hand,
+    result: resultForHand(hand, dealer),
+  }));
+
+  const message =
+    playerHands.length === 1
+      ? messageForHand(playerHands[0], dealer)
+      : `Dealer ${dealer.isBust ? "busts with" : "has"} ${dealer.bestTotal}. ` +
+        playerHands.map((hand, i) => `Hand ${i + 1}: ${shortResult(hand.result)}`).join(" · ");
+
   return withShoeStatus(
-    {
-      ...base,
-      phase: "round-over",
-      dealerHoleHidden: false,
-      result,
-      message: messageForResult(result, playerScore, dealerScore),
-    },
+    { ...state, playerHands, phase: "round-over", dealerHoleHidden: false, message },
     rules,
   );
 }
 
-function settleNaturals(state: RoundState, rules: GameRules = DEFAULT_MVP_RULES): RoundState {
-  const playerScore = scoreHand(state.playerHand);
-  const dealerScore = scoreHand(state.dealerHand);
-
-  if (!playerScore.isBlackjack && !dealerScore.isBlackjack) return state;
-  if (playerScore.isBlackjack && dealerScore.isBlackjack) {
-    return withResolvedRound(state, "push", rules);
+function playDealerToCompletion(state: RoundState, rules: GameRules): RoundState {
+  let dealerHand = state.dealerHand;
+  let shoe = state.shoe;
+  while (shouldDealerDraw(dealerHand, rules.dealerSoft17)) {
+    const draw = drawCard(shoe);
+    dealerHand = [...dealerHand, draw.card];
+    shoe = draw.shoe;
   }
-  if (playerScore.isBlackjack) {
-    return withResolvedRound(state, "blackjack_win", rules);
-  }
-  return withResolvedRound(state, "lose", rules);
+  return { ...state, dealerHand, shoe };
 }
 
-function playDealerToCompletion(
-  dealerHand: Card[],
-  shoe: Card[],
-  rules: GameRules,
-): { dealerHand: Card[]; shoe: Card[] } {
-  let currentDealerHand = [...dealerHand];
-  let currentShoe = shoe;
-
-  while (shouldDealerDraw(currentDealerHand, rules.dealerSoft17)) {
-    const draw = drawCard(currentShoe);
-    currentDealerHand = [...currentDealerHand, draw.card];
-    currentShoe = draw.shoe;
-  }
-
-  return { dealerHand: currentDealerHand, shoe: currentShoe };
-}
-
-function resolveAfterDealerPlay(state: RoundState, rules: GameRules): RoundState {
-  const dealerPlayed = playDealerToCompletion(state.dealerHand, state.shoe, rules);
-  const nextState: RoundState = {
-    ...state,
-    phase: "dealer-turn",
-    dealerHoleHidden: false,
-    dealerHand: dealerPlayed.dealerHand,
-    shoe: dealerPlayed.shoe,
-  };
-  return withResolvedRound(
-    nextState,
-    resolveRoundResult(nextState.playerHand, nextState.dealerHand),
-    rules,
+/**
+ * All player hands are finished: the dealer plays (unless no hand is still live,
+ * i.e. every hand busted or surrendered) and the round resolves.
+ */
+function finishPlayerTurn(state: RoundState, rules: GameRules): RoundState {
+  const revealed: RoundState = { ...state, phase: "dealer-turn", dealerHoleHidden: false };
+  const anyLive = state.playerHands.some(
+    (hand) => hand.status !== "busted" && hand.status !== "surrendered",
   );
+  return resolveRound(anyLive ? playDealerToCompletion(revealed, rules) : revealed, rules);
 }
+
+/**
+ * Moves play to the next unfinished hand. A split hand waiting on its second
+ * card receives it here, so cards come out in casino order.
+ */
+function advanceToNextHand(state: RoundState, rules: GameRules): RoundState {
+  let current = state;
+  for (let index = state.activeHandIndex + 1; index < current.playerHands.length; index += 1) {
+    let hand = current.playerHands[index];
+    if (hand.status !== "playing") continue;
+
+    if (hand.cards.length === 1) {
+      const draw = drawCard(current.shoe);
+      hand = { ...hand, cards: [...hand.cards, draw.card] };
+      current = { ...current, shoe: draw.shoe };
+    }
+
+    const finishedStatus = autoFinishedStatus(hand);
+    if (finishedStatus) {
+      current = replaceHand(current, index, { ...hand, status: finishedStatus });
+      continue;
+    }
+
+    return withShoeStatus(
+      {
+        ...replaceHand(current, index, hand),
+        activeHandIndex: index,
+        message: `Hand ${index + 1}`,
+      },
+      rules,
+    );
+  }
+  return finishPlayerTurn(current, rules);
+}
+
+/** Hands that need no decision: busted, 21, or split aces (one card each). */
+function autoFinishedStatus(hand: PlayerHand): HandStatus | null {
+  const score = scoreHand(hand.cards);
+  if (score.isBust) return "busted";
+  if (score.bestTotal === 21) return "stood";
+  if (isSplitAcesHand(hand) && hand.cards.length >= 2) return "stood";
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// Public API
 
 export function createInitialRoundState(
   rules: GameRules = DEFAULT_MVP_RULES,
@@ -143,7 +195,6 @@ export function createInitialRoundState(
   return {
     ...createEmptyRoundState(),
     shoe: newShuffledShoe(rules, random),
-    reshufflePending: false,
     message: "Ready. Press Deal to start.",
   };
 }
@@ -153,35 +204,78 @@ export function dealRound(
   rules: GameRules = DEFAULT_MVP_RULES,
   random = Math.random,
 ): RoundState {
-  const shouldReshuffleBeforeDeal =
-    state.reshufflePending || isBelowReshuffleCutoff(state.shoe, rules);
-  let shoe = shouldReshuffleBeforeDeal ? newShuffledShoe(rules, random) : state.shoe;
+  const shouldReshuffle = state.reshufflePending || isBelowReshuffleCutoff(state.shoe, rules);
+  let shoe = shouldReshuffle ? newShuffledShoe(rules, random) : state.shoe;
 
   const p1 = drawCard(shoe);
-  shoe = p1.shoe;
-  const d1 = drawCard(shoe);
-  shoe = d1.shoe;
-  const p2 = drawCard(shoe);
-  shoe = p2.shoe;
-  const d2 = drawCard(shoe);
+  const d1 = drawCard(p1.shoe);
+  const p2 = drawCard(d1.shoe);
+  const d2 = drawCard(p2.shoe);
   shoe = d2.shoe;
 
-  const next: RoundState = withShoeStatus(
+  const playerHand = newHand([p1.card, p2.card]);
+  const dealt: RoundState = withShoeStatus(
     {
       phase: "player-turn",
       shoe,
       reshufflePending: false,
-      playerHand: [p1.card, p2.card],
+      playerHands: [playerHand],
+      activeHandIndex: 0,
       dealerHand: [d1.card, d2.card],
       dealerHoleHidden: true,
-      playerActionsTaken: [],
-      result: undefined,
-      message: shouldReshuffleBeforeDeal ? "Shoe reshuffled. Player turn" : "Player turn",
+      insurance: "none",
+      message: shouldReshuffle ? "Shoe reshuffled. Player turn" : "Player turn",
     },
     rules,
   );
 
-  return settleNaturals(next, rules);
+  if (dealt.dealerHand[0].rank === "A" && rules.allowInsurance) {
+    return {
+      ...dealt,
+      phase: "insurance",
+      insurance: "offered",
+      message: "Dealer shows an Ace. Insurance?",
+    };
+  }
+  return peekForNaturals(dealt, rules);
+}
+
+/** The dealer peeks for blackjack, so naturals on either side end the round immediately. */
+function peekForNaturals(state: RoundState, rules: GameRules): RoundState {
+  const [playerHand] = state.playerHands;
+  const playerNatural = scoreHand(playerHand.cards).isBlackjack;
+  const dealerNatural = scoreHand(state.dealerHand).isBlackjack;
+  if (!playerNatural && !dealerNatural) return { ...state, phase: "player-turn" };
+
+  const settledHand: PlayerHand = { ...playerHand, status: playerNatural ? "blackjack" : "stood" };
+  return resolveRound({ ...state, playerHands: [settledHand] }, rules);
+}
+
+/**
+ * Resolves the insurance decision, then peeks. Insurance is a side bet of half
+ * the main bet that pays 2:1 if the dealer has blackjack (see settleRound).
+ */
+export function resolveInsurance(
+  state: RoundState,
+  take: boolean,
+  rules: GameRules = DEFAULT_MVP_RULES,
+): RoundState {
+  if (state.phase !== "insurance") {
+    return { ...state, message: "Insurance is not on offer right now." };
+  }
+  return peekForNaturals(
+    { ...state, insurance: take ? "taken" : "declined", message: "Player turn" },
+    rules,
+  );
+}
+
+export function canSplitHand(state: RoundState, hand: PlayerHand, rules: GameRules): boolean {
+  if (!rules.allowSplit) return false;
+  if (hand.cards.length !== 2 || hand.actions.length > 0) return false;
+  if (!isPair(hand.cards)) return false;
+  if (state.playerHands.length >= rules.maxHands) return false;
+  if (isSplitAcesHand(hand) && !rules.resplitAces) return false;
+  return true;
 }
 
 export function isActionAllowed(
@@ -189,117 +283,141 @@ export function isActionAllowed(
   action: PlayerAction,
   rules: GameRules = DEFAULT_MVP_RULES,
 ): boolean {
-  if (state.phase !== "player-turn") return false;
-  const playerScore = scoreHand(state.playerHand);
-  if (playerScore.isBust) return false;
-  if (action === "hit") return playerScore.bestTotal < 21;
+  const hand = getActiveHand(state);
+  if (!hand || hand.status !== "playing") return false;
+
+  const score = scoreHand(hand.cards);
+  if (score.isBust) return false;
   if (action === "stand") return true;
-  if (action === "double") {
-    if (!rules.allowDouble) return false;
-    if (playerScore.bestTotal >= 21) return false;
-    return state.playerHand.length === 2 && state.playerActionsTaken.length === 0;
-  }
-  return false;
-}
-
-export function summarizeRoundState(state: RoundState): {
-  playerTotal: number;
-  dealerVisibleTotal: number | null;
-  playerBlackjack: boolean;
-} {
-  const playerScore = scoreHand(state.playerHand);
-  const dealerVisibleCard = state.dealerHand[0];
-  const dealerVisibleTotal = dealerVisibleCard ? scoreHand([dealerVisibleCard]).bestTotal : null;
-
-  return {
-    playerTotal: playerScore.bestTotal,
-    dealerVisibleTotal,
-    playerBlackjack: playerScore.isBlackjack,
-  };
-}
-
-export function playerHit(state: RoundState, rules: GameRules = DEFAULT_MVP_RULES): RoundState {
-  if (!isActionAllowed(state, "hit", rules)) {
-    return { ...state, message: "Hit is not allowed right now." };
-  }
-
-  const draw = drawCard(state.shoe);
-  const playerHand = [...state.playerHand, draw.card];
-  const playerScore = scoreHand(playerHand);
-
-  const next: RoundState = withShoeStatus(
-    {
-      ...state,
-      shoe: draw.shoe,
-      playerHand,
-      playerActionsTaken: [...state.playerActionsTaken, "hit"],
-      message: "Player hit",
-    },
-    rules,
-  );
-
-  if (playerScore.isBust) {
-    return withResolvedRound(
-      {
-        ...next,
-        dealerHoleHidden: false,
-      },
-      "lose",
-      rules,
+  if (action === "hit") return score.bestTotal < 21;
+  if (action === "split") return canSplitHand(state, hand, rules);
+  if (action === "surrender") {
+    // Late surrender: only as the first decision on the original two-card hand.
+    return (
+      rules.allowSurrender &&
+      state.playerHands.length === 1 &&
+      hand.cards.length === 2 &&
+      hand.actions.length === 0
     );
   }
 
-  return next;
+  // double
+  if (!rules.allowDouble || score.bestTotal >= 21) return false;
+  if (hand.cards.length !== 2 || hand.actions.length > 0) return false;
+  return !hand.fromSplit || rules.doubleAfterSplit;
+}
+
+function rejected(state: RoundState, action: PlayerAction): RoundState {
+  const label = action[0].toUpperCase() + action.slice(1);
+  return { ...state, message: `${label} is not allowed right now.` };
+}
+
+export function playerHit(state: RoundState, rules: GameRules = DEFAULT_MVP_RULES): RoundState {
+  if (!isActionAllowed(state, "hit", rules)) return rejected(state, "hit");
+
+  const index = state.activeHandIndex;
+  const hand = state.playerHands[index];
+  const draw = drawCard(state.shoe);
+  const updated: PlayerHand = {
+    ...hand,
+    cards: [...hand.cards, draw.card],
+    actions: [...hand.actions, "hit"],
+  };
+  const next = withShoeStatus(
+    { ...replaceHand(state, index, updated), shoe: draw.shoe, message: "Player hit" },
+    rules,
+  );
+
+  const finishedStatus = autoFinishedStatus(updated);
+  if (!finishedStatus) return next;
+  return advanceToNextHand(replaceHand(next, index, { ...updated, status: finishedStatus }), rules);
 }
 
 export function playerStand(state: RoundState, rules: GameRules = DEFAULT_MVP_RULES): RoundState {
-  if (!isActionAllowed(state, "stand", rules)) {
-    return { ...state, message: "Stand is not allowed right now." };
-  }
+  if (!isActionAllowed(state, "stand", rules)) return rejected(state, "stand");
 
-  return resolveAfterDealerPlay(
-    {
-      ...state,
-      phase: "dealer-turn",
-      dealerHoleHidden: false,
-      playerActionsTaken: [...state.playerActionsTaken, "stand"],
-      message: "Dealer turn",
-    },
-    rules,
-  );
+  const index = state.activeHandIndex;
+  const hand = state.playerHands[index];
+  const updated: PlayerHand = { ...hand, actions: [...hand.actions, "stand"], status: "stood" };
+  return advanceToNextHand(replaceHand(state, index, updated), rules);
 }
 
 export function playerDouble(state: RoundState, rules: GameRules = DEFAULT_MVP_RULES): RoundState {
-  if (!isActionAllowed(state, "double", rules)) {
-    return { ...state, message: "Double is not allowed right now." };
-  }
+  if (!isActionAllowed(state, "double", rules)) return rejected(state, "double");
 
+  const index = state.activeHandIndex;
+  const hand = state.playerHands[index];
   const draw = drawCard(state.shoe);
-  const playerHand = [...state.playerHand, draw.card];
-  const playerScore = scoreHand(playerHand);
+  const cards = [...hand.cards, draw.card];
+  const updated: PlayerHand = {
+    ...hand,
+    cards,
+    actions: [...hand.actions, "double"],
+    status: scoreHand(cards).isBust ? "busted" : "doubled",
+  };
+  const next = {
+    ...replaceHand(state, index, updated),
+    shoe: draw.shoe,
+    message: "Player doubled",
+  };
+  return advanceToNextHand(next, rules);
+}
 
-  const next: RoundState = withShoeStatus(
-    {
-      ...state,
-      shoe: draw.shoe,
-      playerHand,
-      dealerHoleHidden: false,
-      playerActionsTaken: [...state.playerActionsTaken, "double"],
-      phase: "dealer-turn",
-      message: "Player doubled",
-    },
+export function playerSplit(state: RoundState, rules: GameRules = DEFAULT_MVP_RULES): RoundState {
+  if (!isActionAllowed(state, "split", rules)) return rejected(state, "split");
+
+  const index = state.activeHandIndex;
+  const hand = state.playerHands[index];
+  const [first, second] = hand.cards;
+  const draw = drawCard(state.shoe);
+
+  const firstHand = newHand([first, draw.card], true);
+  // The second hand gets its next card when play reaches it (see advanceToNextHand).
+  const secondHand = newHand([second], true);
+  const playerHands = [
+    ...state.playerHands.slice(0, index),
+    firstHand,
+    secondHand,
+    ...state.playerHands.slice(index + 1),
+  ];
+
+  const next = withShoeStatus(
+    { ...state, playerHands, shoe: draw.shoe, message: `Split into ${playerHands.length} hands` },
     rules,
   );
 
-  if (playerScore.isBust) {
-    return withResolvedRound(next, "lose", rules);
-  }
+  const finishedStatus = autoFinishedStatus(firstHand);
+  if (!finishedStatus) return next;
+  return advanceToNextHand(
+    replaceHand(next, index, { ...firstHand, status: finishedStatus }),
+    rules,
+  );
+}
 
-  return resolveAfterDealerPlay(next, rules);
+export function playerSurrender(
+  state: RoundState,
+  rules: GameRules = DEFAULT_MVP_RULES,
+): RoundState {
+  if (!isActionAllowed(state, "surrender", rules)) return rejected(state, "surrender");
+
+  const index = state.activeHandIndex;
+  const hand = state.playerHands[index];
+  const updated: PlayerHand = {
+    ...hand,
+    actions: [...hand.actions, "surrender"],
+    status: "surrendered",
+  };
+  return advanceToNextHand(replaceHand(state, index, updated), rules);
 }
 
 export type RoundEvent =
-  { type: "deal" } | { type: "hit" } | { type: "stand" } | { type: "double" };
+  | { type: "deal" }
+  | { type: "hit" }
+  | { type: "stand" }
+  | { type: "double" }
+  | { type: "split" }
+  | { type: "surrender" }
+  | { type: "insurance"; take: boolean };
 
 export function reduceRoundState(
   state: RoundState,
@@ -307,8 +425,20 @@ export function reduceRoundState(
   rules: GameRules = DEFAULT_MVP_RULES,
   random = Math.random,
 ): RoundState {
-  if (event.type === "deal") return dealRound(state, rules, random);
-  if (event.type === "hit") return playerHit(state, rules);
-  if (event.type === "stand") return playerStand(state, rules);
-  return playerDouble(state, rules);
+  switch (event.type) {
+    case "deal":
+      return dealRound(state, rules, random);
+    case "hit":
+      return playerHit(state, rules);
+    case "stand":
+      return playerStand(state, rules);
+    case "double":
+      return playerDouble(state, rules);
+    case "split":
+      return playerSplit(state, rules);
+    case "surrender":
+      return playerSurrender(state, rules);
+    case "insurance":
+      return resolveInsurance(state, event.take, rules);
+  }
 }

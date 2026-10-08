@@ -13,11 +13,12 @@ export function parseFixtureCard(value: string): Card {
   return { rank: rank as Rank, suit: suit as Suit };
 }
 
+/**
+ * Puts `prefixCards` on top of six unshuffled decks, so the stacked cards are dealt
+ * first and the shoe stays above the reshuffle cut card.
+ */
 export function buildPaddedShoe(prefixCards: Card[]): Card[] {
-  const padding = createDeck(1);
-  const shoe = [...prefixCards, ...padding];
-  if (shoe.length < 15) {
-    throw new Error("Fixture shoe should have at least 15 cards");
-  }
-  return shoe;
+  return [...prefixCards, ...createDeck(6)];
 }
+
+export const cards = (...ids: string[]): Card[] => ids.map(parseFixtureCard);

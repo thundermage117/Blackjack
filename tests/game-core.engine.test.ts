@@ -6,6 +6,7 @@ import {
   createEmptyRoundState,
   dealRound,
   isActionAllowed,
+  resolveInsurance,
   scoreHand,
   shouldDealerDraw,
   type RoundState,
@@ -39,11 +40,15 @@ describe("game-core engine fixtures", () => {
     expect(dealerHand).toHaveLength(2);
 
     const shoe = buildPaddedShoe([playerHand[0], dealerHand[0], playerHand[1], dealerHand[1]]);
-    const dealt = dealRound({ ...createEmptyRoundState(), shoe });
+    let dealt = dealRound({ ...createEmptyRoundState(), shoe });
+    // A dealer Ace upcard offers insurance before the peek; decline it.
+    if (dealt.phase === "insurance") dealt = resolveInsurance(dealt, false);
 
-    expect(scoreHand(dealt.playerHand).isBlackjack).toBe(fixture.expected.playerBlackjack);
+    expect(scoreHand(dealt.playerHands[0].cards).isBlackjack).toBe(
+      fixture.expected.playerBlackjack,
+    );
     expect(scoreHand(dealt.dealerHand).isBlackjack).toBe(fixture.expected.dealerBlackjack);
-    expect(dealt.result).toBe(fixture.expected.result);
+    expect(dealt.playerHands[0].result).toBe(fixture.expected.result);
     expect(dealt.phase).toBe("round-over");
   });
 
@@ -59,9 +64,15 @@ describe("game-core engine fixtures", () => {
   it.each(fixtures.filter((f) => f.id === "double-only-on-first-two-cards"))("$id", (fixture) => {
     const playerHand = (fixture.playerHand ?? []).map(parseFixtureCard);
     const state = asRoundState({
-      playerHand,
+      playerHands: [
+        {
+          cards: playerHand,
+          actions: fixture.playerActionsTaken ?? [],
+          status: "playing",
+          fromSplit: false,
+        },
+      ],
       dealerHand: [parseFixtureCard("9_clubs"), parseFixtureCard("7_hearts")],
-      playerActionsTaken: fixture.playerActionsTaken ?? [],
     });
 
     expect(isActionAllowed(state, "double")).toBe(fixture.expected.doubleAllowed);
@@ -86,7 +97,7 @@ describe("game-core engine fixtures", () => {
 
     const dealt = dealRound(
       { ...createEmptyRoundState(), shoe },
-      { ...DEFAULT_MVP_RULES, reshuffleCutoffCards: 54 },
+      { ...DEFAULT_MVP_RULES, reshuffleCutoffCards: 6 * 52 + 1 },
     );
 
     expect(dealt.reshufflePending).toBe(true);
@@ -103,7 +114,7 @@ describe("game-core engine fixtures", () => {
       () => 0.999999,
     );
 
-    expect(dealt.playerHand).toHaveLength(2);
+    expect(dealt.playerHands[0].cards).toHaveLength(2);
     expect(dealt.dealerHand).toHaveLength(2);
     expect(dealt.message).toContain("Shoe reshuffled");
   });

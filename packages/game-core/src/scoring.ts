@@ -42,3 +42,13 @@ export function shouldDealerDraw(hand: Card[], dealerSoft17Rule: "stand" | "hit"
   if (!score.isSoft) return false;
   return dealerSoft17Rule === "hit";
 }
+
+/** Split-equivalence key: tens (10, J, Q, K) are interchangeable, everything else by rank. */
+export function pairKey(card: Card): "A" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10" {
+  if (card.rank === "J" || card.rank === "Q" || card.rank === "K") return "10";
+  return card.rank;
+}
+
+export function isPair(cards: Card[]): boolean {
+  return cards.length === 2 && pairKey(cards[0]) === pairKey(cards[1]);
+}
