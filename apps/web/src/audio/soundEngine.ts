@@ -7,6 +7,8 @@ const CUE_SPACING_SECONDS: Record<SoundCue, number> = {
   shuffle: 0.65,
   chip: 0.08,
   hint: 0.1,
+  correct: 0.1,
+  mistake: 0.1,
   win: 0.1,
   blackjack: 0.1,
   lose: 0.1,
@@ -103,6 +105,13 @@ export class SoundEngine {
       case "hint":
         this.tone(at, { frequency: 880, duration: 0.25, type: "sine", gain: 0.2 });
         this.tone(at + 0.09, { frequency: 1320, duration: 0.3, type: "sine", gain: 0.14 });
+        break;
+      case "correct":
+        this.tone(at, { frequency: 1046.5, duration: 0.12, type: "sine", gain: 0.12 });
+        break;
+      case "mistake":
+        this.tone(at, { frequency: 220, duration: 0.14, type: "triangle", gain: 0.16 });
+        this.tone(at + 0.11, { frequency: 196, duration: 0.18, type: "triangle", gain: 0.14 });
         break;
       case "win":
         this.arpeggio(at, [523.25, 659.25, 783.99], 0.09, "triangle", 0.28);

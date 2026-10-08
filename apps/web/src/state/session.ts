@@ -1,29 +1,44 @@
 import {
-  DEFAULT_MVP_RULES,
+  DEFAULT_TABLE_OPTIONS,
   createInitialRoundState,
   dealRound,
-  hasDoubled,
   isActionAllowed,
   playerDouble,
   playerHit,
+  playerSplit,
   playerStand,
-  scoreHand,
-  settleWager,
+  playerSurrender,
+  resolveInsurance,
+  settleRound,
+  stakeAtRisk,
   type GameRules,
   type RoundResult,
   type RoundState,
+  type TableOptions,
   type WagerSettlement,
 } from "@blackjack/game-core";
+import { strategyTableFor, type StrategyTable } from "@blackjack/hint-engine";
+import { countFor } from "../learning/counting";
+import { LEVELS, rulesForLevel, tableOptionsForLevel, type LevelId } from "../learning/levels";
 import {
-  getHint,
-  mvpS17StrategyTable,
-  normalizeDealerUpcard,
-  type HintAction,
-} from "@blackjack/hint-engine";
+  emptyTrainerStats,
+  grade,
+  recommendInsurance,
+  recommendPlay,
+  recordDecision,
+  type Decision,
+  type Feedback,
+  type Recommendation,
+  type TrainerStats,
+} from "../learning/trainer";
 
 export const STARTING_BANKROLL = 1000;
 export const BET_OPTIONS = [10, 25, 50, 100] as const;
 export const DEFAULT_BET = BET_OPTIONS[0];
+/** At the Counting level, quiz the running count after this many hands. */
+export const COUNT_CHECK_INTERVAL = 5;
+/** After "not yet" on a level-up suggestion, wait this many decisions before asking again. */
+export const PROMOTION_SNOOZE_DECISIONS = 15;
 
 export interface SessionStats {
   wins: number;
@@ -32,191 +47,395 @@ export interface SessionStats {
   blackjacks: number;
 }
 
-export type HintView =
-  { kind: "advice"; action: HintAction; detail: string } | { kind: "unavailable"; detail: string };
+export interface Settings {
+  muted: boolean;
+  haptics: boolean;
+  /** Trainer feedback after decisions. */
+  feedback: boolean;
+  /** Counting level: show the running/true count on the table. */
+  showCount: boolean;
+  /** Counting level: quiz the running count every few hands. */
+  countChecks: boolean;
+  /** Counting level: hide hand totals for practice. */
+  hideTotals: boolean;
+}
 
-/**
- * Dealer cards are revealed one step at a time after the player stands or doubles.
- * `visibleCount` is how many dealer cards are face up; the round is settled
- * (stats/bankroll updated) only once every dealer card is visible.
- */
+export type HintView =
+  | { kind: "advice"; action: Decision; situation: string; detail: string }
+  | { kind: "unavailable"; detail: string };
+
+/** Dealer cards are revealed one per step; settlement waits until all are shown. */
 export interface DealerReveal {
   visibleCount: number;
 }
 
+export interface CountCheck {
+  expected: number;
+  /** `undefined` while waiting for an answer; `null` if skipped. */
+  answer?: number | null;
+}
+
 export interface SessionState {
   round: RoundState;
+  level: LevelId;
+  /** Table rules the player chose; only applied at levels with the rules editor. */
+  tableOptions: TableOptions;
+  /** Effective engine rules for the current level and table. */
   rules: GameRules;
+  strategy: StrategyTable;
   stats: SessionStats;
   bankroll: number;
   bet: number;
   hint: HintView | null;
+  feedback: Feedback | null;
+  trainer: TrainerStats;
   dealerReveal: DealerReveal | null;
   lastSettlement: WagerSettlement | null;
-  /** Increments on every deal; lets the UI tell a fresh hand apart from a hit. */
   handNumber: number;
+  handsSinceCountCheck: number;
+  countCheck: CountCheck | null;
+  promotionSnoozedAt: number | null;
+  settings: Settings;
+  /** Shuffle source. Not persisted; tests and `?seed=` inject a seeded one. */
+  random: () => number;
 }
 
-export type SessionAction =
-  | { type: "deal" }
+export type PlayerDecisionAction =
   | { type: "hit" }
   | { type: "stand" }
   | { type: "double" }
+  | { type: "split" }
+  | { type: "surrender" }
+  | { type: "insurance"; take: boolean };
+
+export type SessionAction =
+  | { type: "deal" }
+  | PlayerDecisionAction
   | { type: "reveal-step" }
   | { type: "request-hint" }
   | { type: "set-bet"; bet: number }
+  | { type: "set-level"; level: LevelId }
+  | { type: "set-table-options"; options: TableOptions }
+  | { type: "update-settings"; settings: Partial<Settings> }
+  | { type: "answer-count-check"; answer: number | null }
+  | { type: "snooze-promotion" }
   | { type: "reset" };
 
-/** Fields that survive a page reload. See ADR-0005. */
-export type PersistedSession = Pick<SessionState, "stats" | "bankroll" | "bet">;
+/** Fields that survive a page reload, including a hand in progress (ADR-0011). */
+export type PersistedSession = Omit<
+  SessionState,
+  "rules" | "strategy" | "random" | "hint" | "feedback"
+>;
+
+export const DEFAULT_SETTINGS: Settings = {
+  muted: false,
+  haptics: true,
+  feedback: true,
+  showCount: true,
+  countChecks: true,
+  hideTotals: false,
+};
 
 export function emptyStats(): SessionStats {
   return { wins: 0, losses: 0, pushes: 0, blackjacks: 0 };
 }
 
-export function createSession(
-  saved?: Partial<PersistedSession>,
-  rules: GameRules = DEFAULT_MVP_RULES,
-): SessionState {
+function withTable(
+  state: Pick<SessionState, "level" | "tableOptions">,
+): Pick<SessionState, "rules" | "strategy"> {
+  const options = tableOptionsForLevel(state.level, state.tableOptions);
+  const rules = rulesForLevel(state.level, state.tableOptions);
   return {
-    round: createInitialRoundState(rules),
     rules,
-    stats: saved?.stats ?? emptyStats(),
-    bankroll: saved?.bankroll ?? STARTING_BANKROLL,
-    bet: saved?.bet ?? DEFAULT_BET,
-    hint: null,
-    dealerReveal: null,
-    lastSettlement: null,
-    handNumber: 0,
+    strategy: strategyTableFor({
+      dealerSoft17: options.dealerSoft17,
+      doubleAfterSplit: options.doubleAfterSplit,
+      surrender: rules.allowSurrender,
+    }),
   };
+}
+
+export function createSession(
+  saved: Partial<PersistedSession> = {},
+  random: () => number = Math.random,
+): SessionState {
+  const levelId = saved.level ?? 1;
+  const tableOptions = saved.tableOptions ?? DEFAULT_TABLE_OPTIONS;
+  const table = withTable({ level: levelId, tableOptions });
+
+  return {
+    round: saved.round ?? createInitialRoundState(table.rules, random),
+    level: levelId,
+    tableOptions,
+    ...table,
+    stats: saved.stats ?? emptyStats(),
+    bankroll: saved.bankroll ?? STARTING_BANKROLL,
+    bet: saved.bet ?? DEFAULT_BET,
+    hint: null,
+    feedback: null,
+    trainer: saved.trainer ?? emptyTrainerStats(),
+    dealerReveal: saved.dealerReveal ?? null,
+    lastSettlement: saved.lastSettlement ?? null,
+    handNumber: saved.handNumber ?? 0,
+    handsSinceCountCheck: saved.handsSinceCountCheck ?? 0,
+    countCheck: saved.countCheck ?? null,
+    promotionSnoozedAt: saved.promotionSnoozedAt ?? null,
+    settings: { ...DEFAULT_SETTINGS, ...saved.settings },
+    random,
+  };
+}
+
+export function toPersisted(state: SessionState): PersistedSession {
+  return {
+    round: state.round,
+    level: state.level,
+    tableOptions: state.tableOptions,
+    stats: state.stats,
+    bankroll: state.bankroll,
+    bet: state.bet,
+    trainer: state.trainer,
+    dealerReveal: state.dealerReveal,
+    lastSettlement: state.lastSettlement,
+    handNumber: state.handNumber,
+    handsSinceCountCheck: state.handsSinceCountCheck,
+    countCheck: state.countCheck,
+    promotionSnoozedAt: state.promotionSnoozedAt,
+    settings: state.settings,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Selectors
+
+export function currentLevel(state: SessionState) {
+  return LEVELS[state.level];
 }
 
 export function isRevealing(state: SessionState): boolean {
   return state.dealerReveal !== null;
 }
 
+export function isRoundInProgress(state: SessionState): boolean {
+  const { phase } = state.round;
+  return phase === "insurance" || phase === "player-turn" || phase === "dealer-turn";
+}
+
+export function isBetweenHands(state: SessionState): boolean {
+  return !isRevealing(state) && !isRoundInProgress(state);
+}
+
+export function isCountCheckPending(state: SessionState): boolean {
+  return state.countCheck !== null && state.countCheck.answer === undefined;
+}
+
 export function canAfford(state: SessionState, amount: number): boolean {
   return state.bankroll >= amount;
 }
 
-export function isRoundInProgress(state: SessionState): boolean {
-  return state.round.phase === "player-turn" || state.round.phase === "dealer-turn";
-}
-
 export function canDeal(state: SessionState): boolean {
-  return !isRevealing(state) && !isRoundInProgress(state) && canAfford(state, state.bet);
+  return isBetweenHands(state) && !isCountCheckPending(state) && canAfford(state, state.bet);
 }
 
 export function canChangeBet(state: SessionState): boolean {
-  return !isRevealing(state) && !isRoundInProgress(state);
+  return isBetweenHands(state);
 }
 
-export function canPlayerAct(state: SessionState, action: "hit" | "stand" | "double"): boolean {
+export function canPlayerAct(state: SessionState, action: PlayerDecisionAction): boolean {
   if (isRevealing(state)) return false;
-  if (!isActionAllowed(state.round, action, state.rules)) return false;
-  // Doubling puts a second bet at risk, so the bankroll must cover both.
-  if (action === "double") return canAfford(state, state.bet * 2);
+  const atRisk = stakeAtRisk(state.round, state.bet);
+
+  if (action.type === "insurance") {
+    if (state.round.phase !== "insurance") return false;
+    return !action.take || canAfford(state, atRisk + state.bet / 2);
+  }
+  if (!isActionAllowed(state.round, action.type, state.rules)) return false;
+  // Doubling and splitting put another base bet on the table.
+  if (action.type === "double" || action.type === "split") {
+    return canAfford(state, atRisk + state.bet);
+  }
   return true;
 }
 
 export function canRequestHint(state: SessionState): boolean {
-  return !isRevealing(state) && state.round.phase === "player-turn";
+  if (isRevealing(state)) return false;
+  return state.round.phase === "player-turn" || state.round.phase === "insurance";
 }
 
 export function isOutOfChips(state: SessionState): boolean {
-  return !isRoundInProgress(state) && !isRevealing(state) && state.bankroll < BET_OPTIONS[0];
+  return isBetweenHands(state) && state.bankroll < BET_OPTIONS[0];
 }
 
-function applyResultToStats(stats: SessionStats, result: RoundResult): SessionStats {
+/** The basic-strategy (or count-based, at the Counting level) play right now. */
+export function currentRecommendation(state: SessionState): Recommendation | null {
+  if (isRevealing(state)) return null;
+  if (state.round.phase === "insurance") {
+    const useCount = currentLevel(state).assists.counting;
+    return recommendInsurance(useCount ? countFor(state.round).true : undefined);
+  }
+  return recommendPlay(state.round, state.rules, state.strategy, {
+    double: canPlayerAct(state, { type: "double" }),
+    split: canPlayerAct(state, { type: "split" }),
+    surrender: canPlayerAct(state, { type: "surrender" }),
+  });
+}
+
+export function isPromotionReady(state: SessionState): boolean {
+  const { promotion } = currentLevel(state);
+  if (!promotion) return false;
+  const { levelDecisions, levelCorrect } = state.trainer;
+  if (levelDecisions < promotion.minDecisions) return false;
+  if (levelCorrect / levelDecisions < promotion.minAccuracy) return false;
+  const snoozedAt = state.promotionSnoozedAt;
+  return snoozedAt === null || levelDecisions >= snoozedAt + PROMOTION_SNOOZE_DECISIONS;
+}
+
+// ---------------------------------------------------------------------------
+// Transitions
+
+function applyResultToStats(stats: SessionStats, result: RoundResult | undefined): SessionStats {
   if (result === "push") return { ...stats, pushes: stats.pushes + 1 };
-  if (result === "lose") return { ...stats, losses: stats.losses + 1 };
+  if (result === "lose" || result === "surrender") return { ...stats, losses: stats.losses + 1 };
   if (result === "blackjack_win") {
     return { ...stats, wins: stats.wins + 1, blackjacks: stats.blackjacks + 1 };
   }
-  return { ...stats, wins: stats.wins + 1 };
+  if (result === "win") return { ...stats, wins: stats.wins + 1 };
+  return stats;
 }
 
 function settle(state: SessionState): SessionState {
-  const { result } = state.round;
-  if (state.round.phase !== "round-over" || !result) return state;
+  if (state.round.phase !== "round-over") return state;
 
-  const settlement = settleWager(result, state.bet, hasDoubled(state.round), state.rules);
+  const settlement = settleRound(state.round, state.bet, state.rules);
+  const stats = state.round.playerHands.reduce(
+    (acc, hand) => applyResultToStats(acc, hand.result),
+    state.stats,
+  );
+
+  const handsSinceCountCheck = state.handsSinceCountCheck + 1;
+  const quizDue =
+    currentLevel(state).assists.counting &&
+    state.settings.countChecks &&
+    handsSinceCountCheck >= COUNT_CHECK_INTERVAL;
+
   return {
     ...state,
-    stats: applyResultToStats(state.stats, result),
+    stats,
     bankroll: state.bankroll + settlement.net,
     lastSettlement: settlement,
+    handsSinceCountCheck: quizDue ? 0 : handsSinceCountCheck,
+    countCheck: quizDue ? { expected: countFor(state.round).running } : state.countCheck,
   };
 }
 
-/** Applies a round transition and either settles immediately or starts a dealer reveal. */
-function transition(
-  state: SessionState,
-  nextRound: RoundState,
-  options: { revealDealer: boolean },
-): SessionState {
+/**
+ * Applies a round transition. A round that ends while the hole card was still hidden
+ * gets a staged dealer reveal (ADR-0007); otherwise it settles immediately.
+ */
+function applyRound(state: SessionState, nextRound: RoundState): SessionState {
   const next: SessionState = { ...state, round: nextRound, hint: null };
   if (nextRound.phase !== "round-over") return next;
-
-  const dealerDrewOrRevealed = options.revealDealer && nextRound.dealerHand.length >= 2;
-  if (dealerDrewOrRevealed) {
-    // Start with only the upcard showing; reveal-step flips the hole card, then each draw.
-    return { ...next, dealerReveal: { visibleCount: 1 } };
-  }
+  if (state.round.dealerHoleHidden) return { ...next, dealerReveal: { visibleCount: 1 } };
   return settle(next);
 }
 
+function decisionFor(action: PlayerDecisionAction): Decision {
+  switch (action.type) {
+    case "hit":
+      return "Hit";
+    case "stand":
+      return "Stand";
+    case "double":
+      return "Double";
+    case "split":
+      return "Split";
+    case "surrender":
+      return "Surrender";
+    case "insurance":
+      return action.take ? "Take insurance" : "No insurance";
+  }
+}
+
+function roundAfter(state: SessionState, action: PlayerDecisionAction): RoundState {
+  const { round, rules } = state;
+  switch (action.type) {
+    case "hit":
+      return playerHit(round, rules);
+    case "stand":
+      return playerStand(round, rules);
+    case "double":
+      return playerDouble(round, rules);
+    case "split":
+      return playerSplit(round, rules);
+    case "surrender":
+      return playerSurrender(round, rules);
+    case "insurance":
+      return resolveInsurance(round, action.take, rules);
+  }
+}
+
+function playerDecision(state: SessionState, action: PlayerDecisionAction): SessionState {
+  if (!canPlayerAct(state, action)) return state;
+
+  const recommendation = currentRecommendation(state);
+  const feedback = recommendation ? grade(recommendation, decisionFor(action)) : null;
+  const graded: SessionState = feedback
+    ? { ...state, feedback, trainer: recordDecision(state.trainer, feedback) }
+    : state;
+
+  return applyRound(graded, roundAfter(state, action));
+}
+
 function hintFor(state: SessionState): HintView {
-  const { round } = state;
-  const upcard = round.dealerHand[0];
-  if (round.phase !== "player-turn" || !upcard || round.playerHand.length === 0) {
+  const recommendation = currentRecommendation(state);
+  if (!recommendation) {
     return { kind: "unavailable", detail: "Hints are available during your turn." };
   }
+  return {
+    kind: "advice",
+    action: recommendation.action,
+    situation: recommendation.situation,
+    detail: recommendation.explanation,
+  };
+}
 
-  const score = scoreHand(round.playerHand);
-  const handKind = score.isSoft ? "soft" : "hard";
-  try {
-    const result = getHint(
-      {
-        handKind,
-        total: score.bestTotal,
-        dealerUpcard: normalizeDealerUpcard(upcard.rank),
-        doubleAllowed: canPlayerAct(state, "double"),
-      },
-      mvpS17StrategyTable,
-    );
-    const situation = `${handKind} ${score.bestTotal} vs dealer ${normalizeDealerUpcard(upcard.rank)}`;
-    const detail = result.fallbackApplied
-      ? `Basic strategy says double on ${situation}; doubling isn't available, so ${result.action.toLowerCase()}.`
-      : `Basic strategy for ${situation}.`;
-    return { kind: "advice", action: result.action, detail };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown hint error";
-    return { kind: "unavailable", detail: message };
-  }
+/** Rebuilds rules for a new level/table; a changed table gets a fresh shoe. */
+function withNewTable(state: SessionState, changes: Partial<SessionState>): SessionState {
+  const next = { ...state, ...changes };
+  const table = withTable(next);
+  const before = tableOptionsForLevel(state.level, state.tableOptions);
+  const after = tableOptionsForLevel(next.level, next.tableOptions);
+  const tableChanged = JSON.stringify(before) !== JSON.stringify(after);
+
+  return {
+    ...next,
+    ...table,
+    hint: null,
+    round: tableChanged
+      ? { ...createInitialRoundState(table.rules, state.random), message: "New table. Fresh shoe." }
+      : next.round,
+  };
 }
 
 export function sessionReducer(state: SessionState, action: SessionAction): SessionState {
   switch (action.type) {
     case "deal": {
       if (!canDeal(state)) return state;
-      return transition(
-        { ...state, lastSettlement: null, handNumber: state.handNumber + 1 },
-        dealRound(state.round, state.rules),
-        {
-          revealDealer: false,
-        },
-      );
+      const next: SessionState = {
+        ...state,
+        lastSettlement: null,
+        feedback: null,
+        countCheck: null,
+        handNumber: state.handNumber + 1,
+      };
+      return applyRound(next, dealRound(state.round, state.rules, state.random));
     }
     case "hit":
-      if (!canPlayerAct(state, "hit")) return state;
-      return transition(state, playerHit(state.round, state.rules), { revealDealer: false });
     case "stand":
-      if (!canPlayerAct(state, "stand")) return state;
-      return transition(state, playerStand(state.round, state.rules), { revealDealer: true });
     case "double":
-      if (!canPlayerAct(state, "double")) return state;
-      return transition(state, playerDouble(state.round, state.rules), { revealDealer: true });
+    case "split":
+    case "surrender":
+    case "insurance":
+      return playerDecision(state, action);
     case "reveal-step": {
       if (!state.dealerReveal) return state;
       const visibleCount = state.dealerReveal.visibleCount + 1;
@@ -231,11 +450,50 @@ export function sessionReducer(state: SessionState, action: SessionAction): Sess
     case "set-bet":
       if (!canChangeBet(state) || !BET_OPTIONS.includes(action.bet as never)) return state;
       return { ...state, bet: action.bet };
-    case "reset":
+    case "set-level":
+      if (!isBetweenHands(state) || action.level === state.level) return state;
+      return withNewTable(state, {
+        level: action.level,
+        trainer: { ...state.trainer, levelDecisions: 0, levelCorrect: 0 },
+        promotionSnoozedAt: null,
+        feedback: null,
+        countCheck: null,
+        handsSinceCountCheck: 0,
+      });
+    case "set-table-options":
+      if (!isBetweenHands(state) || !currentLevel(state).assists.tableRulesEditable) return state;
+      return withNewTable(state, { tableOptions: action.options });
+    case "update-settings":
+      return { ...state, settings: { ...state.settings, ...action.settings } };
+    case "answer-count-check": {
+      if (!state.countCheck || !isCountCheckPending(state)) return state;
+      const correct = action.answer === state.countCheck.expected;
       return {
-        ...createSession(undefined, state.rules),
-        bet: state.bet,
-        round: { ...createInitialRoundState(state.rules), message: "Session reset. Press Deal." },
+        ...state,
+        countCheck: { ...state.countCheck, answer: action.answer },
+        trainer:
+          action.answer === null
+            ? state.trainer
+            : {
+                ...state.trainer,
+                countChecks: state.trainer.countChecks + 1,
+                countChecksCorrect: state.trainer.countChecksCorrect + (correct ? 1 : 0),
+              },
       };
+    }
+    case "snooze-promotion":
+      return { ...state, promotionSnoozedAt: state.trainer.levelDecisions };
+    case "reset": {
+      const fresh = createSession(
+        {
+          bet: state.bet,
+          level: state.level,
+          tableOptions: state.tableOptions,
+          settings: state.settings,
+        },
+        state.random,
+      );
+      return { ...fresh, round: { ...fresh.round, message: "Session reset. Press Deal." } };
+    }
   }
 }
