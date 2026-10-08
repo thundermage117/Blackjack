@@ -53,6 +53,8 @@ export interface SessionState {
   hint: HintView | null;
   dealerReveal: DealerReveal | null;
   lastSettlement: WagerSettlement | null;
+  /** Increments on every deal; lets the UI tell a fresh hand apart from a hit. */
+  handNumber: number;
 }
 
 export type SessionAction =
@@ -85,6 +87,7 @@ export function createSession(
     hint: null,
     dealerReveal: null,
     lastSettlement: null,
+    handNumber: 0,
   };
 }
 
@@ -197,9 +200,13 @@ export function sessionReducer(state: SessionState, action: SessionAction): Sess
   switch (action.type) {
     case "deal": {
       if (!canDeal(state)) return state;
-      return transition({ ...state, lastSettlement: null }, dealRound(state.round, state.rules), {
-        revealDealer: false,
-      });
+      return transition(
+        { ...state, lastSettlement: null, handNumber: state.handNumber + 1 },
+        dealRound(state.round, state.rules),
+        {
+          revealDealer: false,
+        },
+      );
     }
     case "hit":
       if (!canPlayerAct(state, "hit")) return state;
