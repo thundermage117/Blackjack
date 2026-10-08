@@ -483,6 +483,10 @@ input {
   animation: flipIn 340ms ease-out;
 }
 
+.playing-card.is-still {
+  animation: none;
+}
+
 .card-corner {
   position: absolute;
   display: grid;

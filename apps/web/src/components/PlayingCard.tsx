@@ -71,22 +71,30 @@ function CardFace({ card }: { card: Card }) {
   );
 }
 
+/**
+ * A card animates in when dealt, flips when revealed, then stays still. "still" switches the
+ * animation off: otherwise removing `is-flipping` would put the deal animation back, and the
+ * browser would replay it (with its opening-deal delay) on a card already on the table.
+ */
+type Motion = "dealing" | "flipping" | "still";
+
 export function PlayingCard({ card, hidden = false, dealDelayMs = 0 }: PlayingCardProps) {
   const faceDown = hidden || !card;
   const wasFaceDown = useRef(faceDown);
-  const [isFlipping, setIsFlipping] = useState(false);
+  const [motion, setMotion] = useState<Motion>("dealing");
 
   useEffect(() => {
-    if (wasFaceDown.current && !faceDown) setIsFlipping(true);
+    if (wasFaceDown.current && !faceDown) setMotion("flipping");
     wasFaceDown.current = faceDown;
   }, [faceDown]);
 
   const tone = card && (card.suit === "hearts" || card.suit === "diamonds") ? "is-red" : "is-black";
-  const classes = ["playing-card", faceDown ? "is-hidden" : tone, isFlipping ? "is-flipping" : ""]
+  const motionClass = motion === "flipping" ? "is-flipping" : motion === "still" ? "is-still" : "";
+  const classes = ["playing-card", faceDown ? "is-hidden" : tone, motionClass]
     .filter(Boolean)
     .join(" ");
   const style: CSSProperties | undefined =
-    dealDelayMs > 0 && !isFlipping ? { animationDelay: `${dealDelayMs}ms` } : undefined;
+    dealDelayMs > 0 && motion === "dealing" ? { animationDelay: `${dealDelayMs}ms` } : undefined;
 
   return (
     <div
@@ -94,7 +102,9 @@ export function PlayingCard({ card, hidden = false, dealDelayMs = 0 }: PlayingCa
       style={style}
       role="img"
       aria-label={faceDown ? "Face-down card" : `${card.rank} of ${card.suit}`}
-      onAnimationEnd={() => setIsFlipping(false)}
+      onAnimationEnd={(event) => {
+        if (event.target === event.currentTarget) setMotion("still");
+      }}
     >
       {faceDown ? (
         <div className="card-back-pattern" aria-hidden="true" />

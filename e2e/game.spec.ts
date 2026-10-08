@@ -121,3 +121,33 @@ test("the layout never scrolls sideways", async ({ page }) => {
   );
   expect(overflow).toBeLessThanOrEqual(0);
 });
+
+test("cards already on the table never replay the deal animation", async ({ page }) => {
+  await startAt(page, { level: 2, seed: 1 });
+  await dealButton(page).click();
+  await expect(actionButton(page, "Stand")).toBeEnabled();
+  await page.waitForFunction(() =>
+    [...document.querySelectorAll(".playing-card")].every((c) => c.getAnimations().length === 0),
+  );
+
+  // Mark the dealt cards, then record which of them animate from here on.
+  await page.evaluate(() => {
+    const seen: string[] = [];
+    (window as unknown as { seen: string[] }).seen = seen;
+    document
+      .querySelectorAll(".playing-card")
+      .forEach((card) => card.setAttribute("data-dealt", ""));
+    document.addEventListener("animationstart", (event) => {
+      if ((event.target as HTMLElement).hasAttribute("data-dealt")) seen.push(event.animationName);
+    });
+  });
+
+  await actionButton(page, "Stand").click();
+  await expect(page.locator(".net-pill")).toBeVisible({ timeout: 10_000 });
+  // The hole card's stale deal delay was 330 ms; give any replay time to start.
+  await page.waitForTimeout(800);
+  // Only the hole card's flip: no card already on the table deals in again.
+  expect(await page.evaluate(() => (window as unknown as { seen: string[] }).seen)).toEqual([
+    "flipIn",
+  ]);
+});
