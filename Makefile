@@ -1,4 +1,4 @@
-.PHONY: help install dev build preview typecheck test
+.PHONY: help install dev build preview typecheck lint format check test
 
 help:
 	@echo "Available commands:"
@@ -7,6 +7,9 @@ help:
 	@echo "  make build      Build all workspaces"
 	@echo "  make preview    Preview the production build"
 	@echo "  make typecheck  Run TypeScript typecheck"
+	@echo "  make lint       Run ESLint"
+	@echo "  make format     Format files with Prettier"
+	@echo "  make check      Run format check, lint, typecheck and tests"
 	@echo "  make test       Run fixture-backed tests"
 
 install:
@@ -23,6 +26,15 @@ preview:
 
 typecheck:
 	npm run typecheck
+
+lint:
+	npm run lint
+
+format:
+	npm run format
+
+check:
+	npm run check
 
 test:
 	npm run test

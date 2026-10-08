@@ -1,4 +1,4 @@
-import type { Card } from "../../../../packages/game-core/src";
+import type { Card } from "@blackjack/game-core";
 
 interface PlayingCardProps {
   card?: Card;

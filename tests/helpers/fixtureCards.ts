@@ -1,5 +1,5 @@
-import type { Card, Rank, Suit } from "../../packages/game-core/src";
-import { createDeck } from "../../packages/game-core/src";
+import type { Card, Rank, Suit } from "@blackjack/game-core";
+import { createDeck } from "@blackjack/game-core";
 
 const RANKS = new Set<Rank>(["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]);
 const SUITS = new Set<Suit>(["clubs", "diamonds", "hearts", "spades"]);

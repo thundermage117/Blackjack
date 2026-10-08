@@ -9,7 +9,7 @@ import {
   scoreHand,
   shouldDealerDraw,
   type RoundState,
-} from "../packages/game-core/src";
+} from "@blackjack/game-core";
 
 type EngineFixture = {
   id: string;

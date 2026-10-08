@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import hintFixtures from "./fixtures/hint-fixtures.json";
 import { parseFixtureCard } from "./helpers/fixtureCards";
-import { scoreHand } from "../packages/game-core/src";
-import { getHint, mvpS17StrategyTable, normalizeDealerUpcard } from "../packages/hint-engine/src";
+import { scoreHand } from "@blackjack/game-core";
+import { getHint, mvpS17StrategyTable, normalizeDealerUpcard } from "@blackjack/hint-engine";
 
 type HintFixture = {
   id: string;

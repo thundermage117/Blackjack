@@ -10,7 +10,7 @@
     "dev": "npm --workspace apps/web run dev",
     "preview": "npm --workspace apps/web run preview",
     "build": "npm run build --workspaces --if-present",
-    "typecheck": "tsc -p apps/web --noEmit",
+    "typecheck": "tsc -p tsconfig.json && tsc -p apps/web",
     "test": "vitest run",
     "lint": "eslint .",
     "format": "prettier --write .",

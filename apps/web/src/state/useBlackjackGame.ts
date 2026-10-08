@@ -10,12 +10,8 @@ import {
   type Card,
   type RoundResult,
   type RoundState,
-} from "../../../../packages/game-core/src";
-import {
-  getHint,
-  mvpS17StrategyTable,
-  normalizeDealerUpcard,
-} from "../../../../packages/hint-engine/src";
+} from "@blackjack/game-core";
+import { getHint, mvpS17StrategyTable, normalizeDealerUpcard } from "@blackjack/hint-engine";
 
 interface SessionStats {
   wins: number;
