@@ -187,6 +187,8 @@ input {
     inset 0 0 60px rgba(0, 0, 0, 0.35),
     var(--shadow);
   min-height: 460px;
+  /* Cards fly in from off-table; clip them so they never widen the page. */
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;

@@ -6,3 +6,5 @@ build
 .env.*
 coverage
 *.log
+playwright-report
+test-results

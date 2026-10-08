@@ -1,4 +1,4 @@
-.PHONY: help install dev build preview typecheck lint format check test
+.PHONY: help install dev build preview typecheck lint format check test e2e
 
 help:
 	@echo "Available commands:"
@@ -10,7 +10,8 @@ help:
 	@echo "  make lint       Run ESLint"
 	@echo "  make format     Format files with Prettier"
 	@echo "  make check      Run format check, lint, typecheck and tests"
-	@echo "  make test       Run fixture-backed tests"
+	@echo "  make test       Run unit tests"
+	@echo "  make e2e        Run Playwright end-to-end tests"
 
 install:
 	npm install
@@ -38,3 +39,6 @@ check:
 
 test:
 	npm run test
+
+e2e:
+	npm run test:e2e

@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
 
 interface ModalProps {
   open: boolean;
@@ -11,6 +11,8 @@ interface ModalProps {
 /** Native `<dialog>`: focus trapping, Escape to close and inert background for free. */
 export function Modal({ open, title, onClose, children, wide = false }: ModalProps) {
   const ref = useRef<HTMLDialogElement>(null);
+  // Several dialogs are mounted at once, so each needs its own title id.
+  const titleId = useId();
 
   useEffect(() => {
     const dialog = ref.current;
@@ -23,7 +25,7 @@ export function Modal({ open, title, onClose, children, wide = false }: ModalPro
     <dialog
       ref={ref}
       className={`modal${wide ? " is-wide" : ""}`}
-      aria-labelledby="modal-title"
+      aria-labelledby={titleId}
       onClose={onClose}
       onClick={(event) => {
         // A click on the backdrop lands on the dialog element itself.
@@ -32,7 +34,7 @@ export function Modal({ open, title, onClose, children, wide = false }: ModalPro
     >
       <div className="modal-body">
         <header className="modal-header">
-          <h2 id="modal-title">{title}</h2>
+          <h2 id={titleId}>{title}</h2>
           <button type="button" className="icon-btn" onClick={onClose} aria-label="Close">
             ×
           </button>

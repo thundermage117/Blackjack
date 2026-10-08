@@ -4,5 +4,5 @@
     "jsx": "react-jsx",
     "lib": ["ES2020", "DOM", "DOM.Iterable"]
   },
-  "include": ["packages/*/src", "tests"]
+  "include": ["packages/*/src", "tests", "e2e", "playwright.config.ts", "vitest.config.ts"]
 }
