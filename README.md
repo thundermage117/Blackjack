@@ -1,7 +1,8 @@
 # Blackjack
 
-A blackjack **trainer** for the browser. Learn basic strategy step by step, then practise
-card counting, at a table that plays by real casino rules and deals fairly.
+A blackjack **trainer** for the browser and Android. Learn basic strategy step by step, then
+practise card counting, at a table that plays by real casino rules and deals fairly. Free,
+with no ads, no in-app purchases and no tracking.
 
 <p align="center">
   <img src="docs/images/table-desktop.png" alt="Desktop: two split hands on the felt, with the coach explaining that tens should never be split" width="68%" />
@@ -22,7 +23,18 @@ card counting, at a table that plays by real casino rules and deals fairly.
 - Casino-style table, synthesized sound effects, vibration on phones, screen-reader
   support, and keyboard shortcuts. Your session (including a hand in progress) is saved
   in the browser.
-- **Installable and offline**: add it to your home screen and play without a network
+- **Installable and offline**: add it to your home screen and play without a network, or
+  install the [Android app](https://github.com/thundermage117/Blackjack/releases/latest)
+
+## Why this exists
+
+I started this project after searching the Google Play Store for a blackjack trainer. Even
+for an application this simple, the options were cluttered with intrusive advertising and
+repeated prompts to pay for upgrades. Learning basic strategy should not require either.
+
+This trainer is therefore free and open source, with no advertising, no in-app purchases and
+no tracking. It has no analytics and no accounts: the game runs entirely on your device, and
+your progress never leaves it.
 
 ## Quick start
 
