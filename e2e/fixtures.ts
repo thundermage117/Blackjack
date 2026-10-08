@@ -22,12 +22,16 @@ export { expect };
  * Opens the app at a learning level with a seeded shoe. The level is written to
  * storage once per test, so reloads keep whatever the test did afterwards.
  */
-export async function startAt(page: Page, options: { level: 1 | 2 | 3 | 4; seed: number }) {
-  await page.addInitScript((level) => {
+export async function startAt(
+  page: Page,
+  options: { level: 1 | 2 | 3 | 4; seed: number; tableOptions?: Record<string, unknown> },
+) {
+  const save = { level: options.level, tableOptions: options.tableOptions };
+  await page.addInitScript((save) => {
     if (sessionStorage.getItem("e2e-seeded")) return;
-    localStorage.setItem("blackjack.session.v2", JSON.stringify({ level }));
+    localStorage.setItem("blackjack.session.v2", JSON.stringify(save));
     sessionStorage.setItem("e2e-seeded", "1");
-  }, options.level);
+  }, save);
   await page.goto(`/?seed=${options.seed}`);
   await expect(page.getByRole("region", { name: "Blackjack table" })).toBeVisible();
 }

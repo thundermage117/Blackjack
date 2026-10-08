@@ -5,6 +5,13 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Fixed
+
+- On narrower phones (360px wide and below), the move button labels, most visibly
+  Surrender, no longer sit off-centre or spill out of the button.
+- On phones, the second row of move buttons (Split, Surrender) is centred instead of
+  hugging the left edge.
+
 ## [0.1.0] - 2026-10-08
 
 ### Added (mobile)
