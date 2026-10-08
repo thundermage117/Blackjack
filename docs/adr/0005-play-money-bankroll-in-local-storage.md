@@ -1,6 +1,6 @@
 # 0005. Play-money bankroll persisted in localStorage
 
-- Status: Accepted
+- Status: Accepted; in-progress hand handling superseded by ADR-0011
 - Date: 2026-10-08
 
 ## Context
