@@ -1,143 +1,83 @@
-# Hint Strategy Table Format (Data-Driven)
+# Hint Strategy Table Format
 
-Version: 1.2
+Version: 2.0
 Last updated: 2026-10-08
 
 ## Goal
 
-Represent blackjack basic strategy in a plain data table so the hint engine:
+Basic strategy lives in plain data, so the hint engine:
 
-- stays deterministic
-- is easy to review
-- can be tested with fixtures
-- can support multiple rulesets later
+- stays deterministic and easy to test with fixtures
+- is easy to check, row by row, against a printed strategy chart
+- supports every table variant the game offers (ADR-0009)
 
-## Design
+## Source format
 
-The hint engine reads a table keyed by hand category and total.
+Tables are written in `packages/hint-engine/src/basicStrategyTable.ts` as **row strings**,
+one character per dealer upcard in this order:
 
-### Dealer Upcard Keys
+```
+2 3 4 5 6 7 8 9 T A
+```
 
-Allowed keys:
+| Section     | Keys                          | Characters                                      |
+| ----------- | ----------------------------- | ----------------------------------------------- |
+| Hard totals | 4–21                          | `H` hit, `S` stand, `D` double                  |
+| Soft totals | 12–21 (A,A … A,10)            | same                                            |
+| Pairs       | `A`, `2`–`10`                 | `Y` split, `N` don't split (use the totals row) |
+| Surrender   | `hard:<total>`, `pair:<rank>` | `Y` surrender, `N` don't                        |
 
-- `2`, `3`, `4`, `5`, `6`, `7`, `8`, `9`, `10`, `A`
+`D` means "double if allowed". If not: hard totals hit; soft 13–17 hit; soft 18–19 stand.
 
-### Row Keys
-
-Rows are keyed by one of:
-
-- `hard:<total>` (example: `hard:16`)
-- `soft:<total>` (example: `soft:18`)
-- `pair:<rank>` (future use, example: `pair:8`)
-
-MVP does not support splits, so `pair:*` rows are optional and can be omitted.
-
-### Actions
-
-Allowed action values:
-
-- `H` = Hit
-- `S` = Stand
-- `D` = Double (double if allowed, otherwise fallback)
-
-Optional future values:
-
-- `P` = Split
-- `R` = Surrender
-
-## Type Shape (TypeScript)
+Example, hard 9 (double against 3–6, otherwise hit):
 
 ```ts
-type DealerUpcardKey = "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "A";
-type StrategyAction = "H" | "S" | "D";
-
-type StrategyRow = Partial<Record<DealerUpcardKey, StrategyAction>>;
-
-interface StrategyTable {
-  hard: Record<string, StrategyRow>;
-  soft: Record<string, StrategyRow>;
-  pair?: Record<string, StrategyRow>;
-  metadata: {
-    name: string;
-    dealerSoft17: "stand" | "hit";
-    deckCount: number | "any";
-    notes?: string;
-  };
-}
+9: "HDDDDHHHHH",
 ```
 
-## Example (MVP Partial)
+The base tables are for **S17 with double after split**. Variants are small override maps:
 
-```json
-{
-  "metadata": {
-    "name": "blackjack-mvp-s17",
-    "dealerSoft17": "stand",
-    "deckCount": 6
-  },
-  "hard": {
-    "16": {
-      "2": "S",
-      "3": "S",
-      "4": "S",
-      "5": "S",
-      "6": "S",
-      "7": "H",
-      "8": "H",
-      "9": "H",
-      "10": "H",
-      "A": "H"
-    },
-    "17": {
-      "2": "S",
-      "3": "S",
-      "4": "S",
-      "5": "S",
-      "6": "S",
-      "7": "S",
-      "8": "S",
-      "9": "S",
-      "10": "S",
-      "A": "S"
-    }
-  },
-  "soft": {
-    "18": {
-      "2": "S",
-      "3": "D",
-      "4": "D",
-      "5": "D",
-      "6": "D",
-      "7": "S",
-      "8": "S",
-      "9": "H",
-      "10": "H",
-      "A": "H"
-    }
-  }
-}
-```
+- `HARD_H17_OVERRIDES` / `SOFT_H17_OVERRIDES`: cells that change when the dealer hits soft 17
+- `PAIRS_NO_DAS_OVERRIDES`: pair rows that change without double after split
+- `SURRENDER_S17` / `SURRENDER_H17`: used only when late surrender is on
 
-## Engine Resolution Order
+`strategyTableFor({ dealerSoft17, doubleAfterSplit, surrender })` combines them into a
+`StrategyTable` (rows parsed into objects keyed by upcard). Invalid characters or rows that
+are not 10 long throw at load time.
 
-Given a player hand and dealer upcard:
+## Resolution order (`getHint`)
 
-1. Compute hand classification (`hard`, `soft`, later `pair`)
-2. Build row key using total/rank
-3. Lookup row and dealer upcard key
-4. If action is `D` but double is not allowed, apply fallback (usually `H` or `S`)
-5. Return normalized UI action (`Hit`, `Stand`, `Double`)
+1. **Surrender**, if allowed and the hand is hard: look up `pair:<rank>` for a splittable
+   pair, otherwise `hard:<total>`.
+2. **Split**, if the hand is a pair and splitting is allowed: the pair row.
+3. **Totals**: the hard or soft row, applying the double fallback above.
 
-## Validation Rules for Strategy Data
+Insurance is separate (`getInsuranceAdvice`): never under basic strategy, take it at a true
+count of +3 or more (level 4).
 
-- Every row should include all dealer upcard keys (`2`-`10`, `A`)
-- No unsupported action values
-- Metadata must match current engine rules (`dealerSoft17`, deck count assumptions)
-- Tests should fail if a requested row or upcard is missing
+## Validation
+
+`tests/hint-engine.table.test.ts` checks, for all 8 rule variants:
+
+- every hard (4–21), soft (12–21) and pair row exists and covers all 10 upcards
+- surrender rows exist only when surrender is on
+- hard 17+ always stands, aces are always split, tens never
+- S17 vs H17 differ in exactly the documented cells
+
+`tests/hint-engine.fixtures.test.ts` pins individual cells, and the long-run simulation in
+`tests/game-core.fairness.test.ts` confirms the default table plays at the published house
+edge.
 
 ## Table Change Log
 
 Any change to a table cell must update `tests/fixtures/hint-fixtures.json` in the same commit.
+
+### 2.0 (2026-10-08): pairs, surrender, H17 and no-DAS
+
+- Tables are generated by `strategyTableFor` from row strings plus overrides
+- Added pair rows (DAS and no-DAS), surrender rows (S17 and H17), and H17 overrides:
+  `hard:11` vA double, `soft:18` v2 double, `soft:19` v6 double
+- Deck count is now "4–8": the same multi-deck strategy applies to 4, 6 and 8 decks
 
 ### 1.2 (2026-10-08): align `blackjack-mvp-s17` with 6-deck S17 basic strategy
 
