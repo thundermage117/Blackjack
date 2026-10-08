@@ -5,6 +5,14 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added (mobile)
+
+- Install the trainer to your home screen (Android, iOS, desktop Chrome and Edge). It opens
+  in its own window with a felt-green app icon.
+- Offline play: after one visit, the whole app loads and plays without a network.
+- When a new version is available, a prompt offers to reload now or later. Your hand in
+  progress is kept either way.
+
 ### Added (learning and full table)
 
 - Four learning levels: Basics, Strategy, Full table and Counting. Each unlocks more

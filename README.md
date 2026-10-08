@@ -22,6 +22,7 @@ card counting, at a table that plays by real casino rules and deals fairly.
 - Casino-style table, synthesized sound effects, vibration on phones, screen-reader
   support, and keyboard shortcuts. Your session (including a hand in progress) is saved
   in the browser.
+- **Installable and offline**: add it to your home screen and play without a network
 
 ## Quick start
 
@@ -95,14 +96,14 @@ docs/                  rules, architecture, strategy format, ADRs, original plan
 
 The app builds to static files. `vercel.json` is configured: import the repository into
 Vercel and it will run `npm run build` and serve `apps/web/dist`. Any static host works the
-same way.
+same way. Serve it over HTTPS so the service worker (install and offline play) registers.
 
 ## Roadmap
 
 ### Expand to mobile
 
-- Make the web app installable as a PWA (manifest, icons, offline play via a service
-  worker). Everything already runs in the browser, so no backend is needed.
+- ~~Make the web app installable as a PWA (manifest, icons, offline play via a service
+  worker).~~ Done, see [ADR-0014](docs/adr/0014-installable-pwa-with-offline-play.md).
 - Wrap it as native Android and iOS apps (e.g. Capacitor) for the app stores, with native
   haptics and audio.
 - Mobile polish: landscape layout, larger touch targets for split hands, swipe gestures for

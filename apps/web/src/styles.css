@@ -1448,6 +1448,40 @@ input {
 }
 
 /* ==========================================================================
+   Update prompt
+   ========================================================================== */
+
+.update-prompt {
+  position: fixed;
+  left: 50%;
+  bottom: calc(1rem + env(safe-area-inset-bottom));
+  z-index: 40;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem 1rem;
+  width: max-content;
+  max-width: calc(100vw - 2rem);
+  padding: 0.75rem 1rem;
+  transform: translateX(-50%);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-2);
+  box-shadow: var(--shadow);
+}
+
+.update-prompt-text {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.update-prompt-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* ==========================================================================
    Small screens
    ========================================================================== */
 

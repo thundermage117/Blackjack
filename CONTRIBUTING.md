@@ -51,6 +51,9 @@ npm run format   # auto-fix formatting
   time, run `npx playwright install chromium`). They build the app and run against
   `vite preview` on desktop and phone viewports. Use `startAt(page, { level, seed })` and
   pick a seed that deals the hand you need. Any console error fails the test.
+- The service worker only runs in production builds. To check install or offline
+  behaviour by hand, run `npm run build && npm run preview`. `e2e/pwa.spec.ts` covers the
+  manifest and offline play.
 - New logic in a pure module needs unit tests. New UI flows need an e2e test. Sound and
   vibration are checked by hand (see the smoke test in [`docs/rules.md`](docs/rules.md)).
 
