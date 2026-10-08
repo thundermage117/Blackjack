@@ -12,6 +12,7 @@ All notable changes to this project are documented here. The format is based on
 - Offline play: after one visit, the whole app loads and plays without a network.
 - When a new version is available, a prompt offers to reload now or later. Your hand in
   progress is kept either way.
+- Android app (APK), built with Capacitor. Plays fully offline from first launch.
 
 ### Added (learning and full table)
 

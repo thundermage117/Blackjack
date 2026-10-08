@@ -1,4 +1,4 @@
-.PHONY: help install dev build preview typecheck lint format check test e2e
+.PHONY: help install dev build preview typecheck lint format check test e2e apk
 
 help:
 	@echo "Available commands:"
@@ -12,6 +12,7 @@ help:
 	@echo "  make check      Run format check, lint, typecheck and tests"
 	@echo "  make test       Run unit tests"
 	@echo "  make e2e        Run Playwright end-to-end tests"
+	@echo "  make apk        Build the signed Android release APK"
 
 install:
 	npm install
@@ -42,3 +43,6 @@ test:
 
 e2e:
 	npm run test:e2e
+
+apk:
+	npm run apk
