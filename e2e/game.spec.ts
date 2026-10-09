@@ -253,3 +253,29 @@ test("card corner indices never overlap the pips or face frame", async ({ page }
     await page.evaluate(() => sessionStorage.clear());
   }
 });
+
+test("the running count is hidden while a count check is asked", async ({ page }) => {
+  await startAt(page, { level: 4, seed: 2 });
+  const countPanel = page.locator(".count-card");
+  for (let hand = 0; hand < 5; hand++) {
+    await expect(dealButton(page)).toBeEnabled({ timeout: 10_000 });
+    await dealButton(page).click();
+    const stand = actionButton(page, "Stand");
+    // Some hands end at once (blackjack); only stand when there is a decision.
+    if (await stand.isVisible().catch(() => false)) await stand.click().catch(() => {});
+    if (
+      await actionButton(page, "No insurance")
+        .isVisible()
+        .catch(() => false)
+    ) {
+      await actionButton(page, "No insurance").click();
+      if (await stand.isVisible().catch(() => false)) await stand.click();
+    }
+    await expect(page.locator(".net-pill")).toBeVisible({ timeout: 10_000 });
+  }
+
+  await expect(page.getByText("What is the running count right now?")).toBeVisible();
+  await expect(countPanel).toHaveCount(0);
+  await page.getByRole("button", { name: "Skip" }).click();
+  await expect(countPanel).toBeVisible();
+});

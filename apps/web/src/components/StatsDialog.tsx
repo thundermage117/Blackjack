@@ -60,7 +60,9 @@ export function StatsDialogContent({ game }: { game: GameViewModel }) {
         <ol className="mistake-list">
           {trainer.mistakes.map((mistake) => (
             <li key={mistake.situation}>
-              <span className="mistake-situation">{mistake.situation}</span>
+              <span className="mistake-situation">
+                {mistake.situation.charAt(0).toUpperCase() + mistake.situation.slice(1)}
+              </span>
               <span className="mistake-fix">→ {mistake.recommended}</span>
               <span className="mistake-count">×{mistake.count}</span>
             </li>
