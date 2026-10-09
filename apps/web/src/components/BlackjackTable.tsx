@@ -53,6 +53,7 @@ export function BlackjackTable() {
             onClick={() => setDialog("chart")}
             disabled={!chartAvailable}
             aria-keyshortcuts="C"
+            title={chartAvailable ? "Strategy chart (C)" : "Available after your first hand"}
           >
             Chart
           </button>

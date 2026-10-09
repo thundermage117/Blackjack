@@ -5,6 +5,17 @@ import { actionButton, dealButton, expect, startAt, test } from "./fixtures";
  * seed 8 deals a splittable pair, seed 5 deals a dealer Ace (insurance offer).
  */
 
+test("a first visit is welcomed until the first decision", async ({ page }) => {
+  await startAt(page, { level: 1, seed: 1 });
+  const welcome = page.getByText("Learn blackjack one decision at a time");
+  await expect(welcome).toBeVisible();
+
+  await dealButton(page).click();
+  await page.locator(".btn.is-recommended").click();
+  await expect(dealButton(page)).toBeEnabled({ timeout: 10_000 });
+  await expect(welcome).toHaveCount(0);
+});
+
 test("level 1 highlights the right move and praises following it", async ({ page }) => {
   await startAt(page, { level: 1, seed: 1 });
   await dealButton(page).click();
