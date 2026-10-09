@@ -18,6 +18,7 @@ import {
 import {
   emptyTrainerStats,
   grade,
+  outcomeNote,
   recommendPlay,
   recordDecision,
   topMistakes,
@@ -103,6 +104,19 @@ describe("trainer", () => {
       ["hard 16 vs 10", 2],
       ["hard 13 vs 2", 1],
     ]);
+  });
+
+  it("separates luck from skill only when result and decision disagree", () => {
+    const rec = { action: "Hit" as const, situation: "hard 16 vs 10", explanation: "" };
+    const right = grade(rec, "Hit");
+    const wrong = grade(rec, "Stand");
+
+    expect(outcomeNote(wrong, 10)).toMatch(/won this time/);
+    expect(outcomeNote(right, -10)).toMatch(/Right play/);
+    expect(outcomeNote(right, 10)).toBeNull();
+    expect(outcomeNote(wrong, -10)).toBeNull();
+    expect(outcomeNote(wrong, 0)).toBeNull();
+    expect(outcomeNote(wrong, null)).toBeNull();
   });
 });
 

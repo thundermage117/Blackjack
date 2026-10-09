@@ -27,7 +27,7 @@ test("level 1 highlights the right move and praises following it", async ({ page
   const move = (await suggested.innerText()).split(/\s/)[0];
 
   await suggested.click();
-  await expect(page.getByText(`✓ ${move} is right`)).toBeVisible();
+  await expect(page.getByText(`✓ ${move} is right`).filter({ visible: true })).toBeVisible();
 });
 
 test("a mistake explains the correct play", async ({ page }) => {
@@ -37,12 +37,15 @@ test("a mistake explains the correct play", async ({ page }) => {
   const wrong = suggested === "Hit" ? "Stand" : "Hit";
 
   await actionButton(page, wrong).click();
-  await expect(page.getByText(`✗ Basic strategy says ${suggested}`)).toBeVisible();
+  // One feedback card is shown per layout (beside the table, or under the moves on phones).
+  const feedback = page.getByText(`✗ Basic strategy says ${suggested}`).filter({ visible: true });
+  await expect(feedback).toBeVisible();
+  await expect(feedback).toBeInViewport();
 });
 
 test("the dealer reveals, the hand settles and the bankroll moves", async ({ page }) => {
   await startAt(page, { level: 2, seed: 1 });
-  const bankroll = page.locator(".toolbar .bankroll");
+  const bankroll = page.locator(".app-header .bankroll");
   await expect(bankroll).toHaveText("$1,000");
 
   await dealButton(page).click();
@@ -222,3 +225,31 @@ for (const [moves, level, tableOptions] of [
       expect(Number(entry.split(": ")[1]), entry).toBeLessThanOrEqual(2);
   });
 }
+
+test("card corner indices never overlap the pips or face frame", async ({ page }) => {
+  for (const seed of [1, 2, 3, 4, 5, 6]) {
+    await startAt(page, { level: 2, seed });
+    await dealButton(page).click();
+    await expect(page.locator(".playing-card:not(.is-hidden)").first()).toBeVisible();
+    await page.waitForTimeout(500); // let the deal-in animation settle
+
+    const overlaps = await page.$$eval(".playing-card:not(.is-hidden)", (cards) =>
+      cards.flatMap((card) => {
+        const corners = [...card.querySelectorAll(".card-corner")].map((el) =>
+          el.getBoundingClientRect(),
+        );
+        const art = [...card.querySelectorAll(".pip, .face-art, .ace-pip > *")].map((el) =>
+          el.getBoundingClientRect(),
+        );
+        const hit = corners.some((c) =>
+          art.some(
+            (a) => c.left < a.right && a.left < c.right && c.top < a.bottom && a.top < c.bottom,
+          ),
+        );
+        return hit ? [card.getAttribute("aria-label")] : [];
+      }),
+    );
+    expect(overlaps, `seed ${seed}`).toEqual([]);
+    await page.evaluate(() => sessionStorage.clear());
+  }
+});

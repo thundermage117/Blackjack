@@ -15,21 +15,29 @@ const SUIT_SYMBOL: Record<Card["suit"], string> = {
   clubs: "♣",
 };
 
-/** Pip positions as [x%, y%] on the card face, laid out like a real deck. */
-const L = 28;
+/**
+ * Pip positions as [x%, y%] inside the pip area (`.card-center`), laid out like a real deck.
+ * The pip area keeps clear of the corner indices, so the two never touch.
+ */
+const L = 18;
 const C = 50;
-const R = 72;
+const R = 82;
+// Rows for 9 and 10: four evenly spaced lines.
+const Q1 = 8;
+const Q2 = 36;
+const Q3 = 64;
+const Q4 = 92;
 // prettier-ignore
 const PIP_LAYOUTS: Record<string, Array<[number, number]>> = {
-  "2": [[C, 18], [C, 82]],
-  "3": [[C, 18], [C, 50], [C, 82]],
-  "4": [[L, 18], [R, 18], [L, 82], [R, 82]],
-  "5": [[L, 18], [R, 18], [C, 50], [L, 82], [R, 82]],
-  "6": [[L, 18], [R, 18], [L, 50], [R, 50], [L, 82], [R, 82]],
-  "7": [[L, 18], [R, 18], [C, 34], [L, 50], [R, 50], [L, 82], [R, 82]],
-  "8": [[L, 18], [R, 18], [C, 34], [L, 50], [R, 50], [C, 66], [L, 82], [R, 82]],
-  "9": [[L, 18], [R, 18], [L, 39], [R, 39], [C, 50], [L, 61], [R, 61], [L, 82], [R, 82]],
-  "10": [[L, 18], [R, 18], [C, 29], [L, 40], [R, 40], [L, 60], [R, 60], [C, 71], [L, 82], [R, 82]],
+  "2": [[C, Q1], [C, Q4]],
+  "3": [[C, Q1], [C, 50], [C, Q4]],
+  "4": [[L, Q1], [R, Q1], [L, Q4], [R, Q4]],
+  "5": [[L, Q1], [R, Q1], [C, 50], [L, Q4], [R, Q4]],
+  "6": [[L, Q1], [R, Q1], [L, 50], [R, 50], [L, Q4], [R, Q4]],
+  "7": [[L, Q1], [R, Q1], [C, 29], [L, 50], [R, 50], [L, Q4], [R, Q4]],
+  "8": [[L, Q1], [R, Q1], [C, 29], [L, 50], [R, 50], [C, 71], [L, Q4], [R, Q4]],
+  "9": [[L, Q1], [R, Q1], [L, Q2], [R, Q2], [C, 50], [L, Q3], [R, Q3], [L, Q4], [R, Q4]],
+  "10": [[L, Q1], [R, Q1], [C, 22], [L, Q2], [R, Q2], [L, Q3], [R, Q3], [C, 78], [L, Q4], [R, Q4]],
 };
 
 function CardFace({ card }: { card: Card }) {
@@ -37,10 +45,12 @@ function CardFace({ card }: { card: Card }) {
   const pips = PIP_LAYOUTS[card.rank];
   const isFace = card.rank === "J" || card.rank === "Q" || card.rank === "K";
 
+  const rankClass = card.rank === "10" ? "corner-rank is-ten" : "corner-rank";
+
   return (
     <>
       <div className="card-corner top" aria-hidden="true">
-        <span className="corner-rank">{card.rank}</span>
+        <span className={rankClass}>{card.rank}</span>
         <span className="corner-suit">{symbol}</span>
       </div>
       <div className="card-center" aria-hidden="true">
@@ -63,8 +73,12 @@ function CardFace({ card }: { card: Card }) {
           <span className="ace-pip">{symbol}</span>
         )}
       </div>
+      {/* Small cards (split hands on phones) show one large suit instead of pips. */}
+      <span className="mini-suit" aria-hidden="true">
+        {symbol}
+      </span>
       <div className="card-corner bottom" aria-hidden="true">
-        <span className="corner-rank">{card.rank}</span>
+        <span className={rankClass}>{card.rank}</span>
         <span className="corner-suit">{symbol}</span>
       </div>
     </>

@@ -152,6 +152,18 @@ export function recordDecision(stats: TrainerStats, feedback: Feedback): Trainer
   };
 }
 
+/**
+ * When the hand's result disagrees with the quality of the last decision, a short note
+ * separating luck from skill. `net` is the settled result, or null before settlement.
+ */
+export function outcomeNote(feedback: Feedback | null, net: number | null): string | null {
+  if (!feedback || net === null) return null;
+  if (!feedback.correct && net > 0)
+    return "You won this time, but the odds were against that play.";
+  if (feedback.correct && net < 0) return "Right play. It just didn't work out this hand.";
+  return null;
+}
+
 export function accuracy(correct: number, decisions: number): number | null {
   return decisions === 0 ? null : correct / decisions;
 }
