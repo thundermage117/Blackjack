@@ -84,14 +84,14 @@ function resultForHand(hand: PlayerHand, dealer: HandScore): RoundResult {
 function messageForHand(hand: PlayerHand, dealer: HandScore): string {
   const player = scoreHand(hand.cards);
   const result = hand.result;
-  if (result === "blackjack_win") return "Blackjack! Player wins.";
-  if (result === "surrender") return "Player surrenders. Half the bet is returned.";
-  if (player.isBust) return `Player busts with ${player.bestTotal}. Dealer wins.`;
+  if (result === "blackjack_win") return "Blackjack! You win.";
+  if (result === "surrender") return "You surrender. Half the bet is returned.";
+  if (player.isBust) return `You bust with ${player.bestTotal}. Dealer wins.`;
   if (result === "push" && hand.status === "blackjack") return "Both have blackjack. Push.";
   if (dealer.isBlackjack) return "Dealer has blackjack. Dealer wins.";
-  if (dealer.isBust) return `Dealer busts with ${dealer.bestTotal}. Player wins.`;
+  if (dealer.isBust) return `Dealer busts with ${dealer.bestTotal}. You win.`;
   if (result === "push") return `Push (${player.bestTotal} vs ${dealer.bestTotal})`;
-  if (result === "win") return `Player wins (${player.bestTotal} vs ${dealer.bestTotal})`;
+  if (result === "win") return `You win (${player.bestTotal} vs ${dealer.bestTotal})`;
   return `Dealer wins (${dealer.bestTotal} vs ${player.bestTotal})`;
 }
 
@@ -224,7 +224,7 @@ export function dealRound(
       dealerHand: [d1.card, d2.card],
       dealerHoleHidden: true,
       insurance: "none",
-      message: shouldReshuffle ? "Shoe reshuffled. Player turn" : "Player turn",
+      message: shouldReshuffle ? "Shoe reshuffled. Your turn." : "Your turn",
     },
     rules,
   );
@@ -264,7 +264,7 @@ export function resolveInsurance(
     return { ...state, message: "Insurance is not on offer right now." };
   }
   return peekForNaturals(
-    { ...state, insurance: take ? "taken" : "declined", message: "Player turn" },
+    { ...state, insurance: take ? "taken" : "declined", message: "Your turn" },
     rules,
   );
 }
@@ -324,7 +324,7 @@ export function playerHit(state: RoundState, rules: GameRules = DEFAULT_MVP_RULE
     actions: [...hand.actions, "hit"],
   };
   const next = withShoeStatus(
-    { ...replaceHand(state, index, updated), shoe: draw.shoe, message: "Player hit" },
+    { ...replaceHand(state, index, updated), shoe: draw.shoe, message: "You hit" },
     rules,
   );
 
@@ -358,7 +358,7 @@ export function playerDouble(state: RoundState, rules: GameRules = DEFAULT_MVP_R
   const next = {
     ...replaceHand(state, index, updated),
     shoe: draw.shoe,
-    message: "Player doubled",
+    message: "You doubled",
   };
   return advanceToNextHand(next, rules);
 }
