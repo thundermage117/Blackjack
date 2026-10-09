@@ -12,6 +12,10 @@ All notable changes to this project are documented here. The format is based on
   instead of empty "–" statistics.
 - The shoe shows "312 left" rather than a bare number, and the disabled Chart button says
   when it becomes available.
+- On phones, the coach's verdict on your move appears right under the move buttons instead
+  of below the fold.
+- When luck and skill disagree, the coach says so: "You won this time, but the odds were
+  against that play" or "Right play. It just didn't work out this hand."
 
 ## 0.1.1 - 2026-10-09
 

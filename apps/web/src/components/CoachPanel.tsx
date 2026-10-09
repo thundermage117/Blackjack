@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { outcomeNote } from "../learning/trainer";
 import type { GameViewModel } from "../state/useBlackjackGame";
 
 function percent(value: number | null): string {
@@ -132,6 +133,31 @@ function CountCheckForm({ game }: { game: GameViewModel }) {
   );
 }
 
+/**
+ * Grade and explanation for the last decision. Rendered beside the table on wide screens
+ * and under the move buttons on narrow ones (CSS shows one), so it's never off-screen.
+ */
+export function FeedbackCard({ game, className }: { game: GameViewModel; className: string }) {
+  const { feedback } = game;
+  if (!feedback) return null;
+  const note = outcomeNote(feedback, game.lastNet);
+  return (
+    <div
+      className={`coach-card ${className} ${feedback.correct ? "is-correct" : "is-mistake"}`}
+      role="status"
+    >
+      <p className="coach-eyebrow coach-situation">{capitalize(feedback.situation)}</p>
+      <p className="coach-title">
+        {feedback.correct
+          ? `✓ ${feedback.chosen} is right`
+          : `✗ Basic strategy says ${feedback.action}`}
+      </p>
+      <p className="coach-text">{feedback.explanation}</p>
+      {note ? <p className="coach-text coach-note">{note}</p> : null}
+    </div>
+  );
+}
+
 /** Hints, trainer feedback, progress and counting, beside (or below) the table. */
 export function CoachPanel({ game }: { game: GameViewModel }) {
   const advice = game.autoRecommendation;
@@ -161,20 +187,7 @@ export function CoachPanel({ game }: { game: GameViewModel }) {
         </div>
       ) : null}
 
-      {game.feedback ? (
-        <div
-          className={`coach-card ${game.feedback.correct ? "is-correct" : "is-mistake"}`}
-          role="status"
-        >
-          <p className="coach-eyebrow coach-situation">{capitalize(game.feedback.situation)}</p>
-          <p className="coach-title">
-            {game.feedback.correct
-              ? `✓ ${game.feedback.chosen} is right`
-              : `✗ Basic strategy says ${game.feedback.action}`}
-          </p>
-          <p className="coach-text">{game.feedback.explanation}</p>
-        </div>
-      ) : null}
+      <FeedbackCard game={game} className="feedback-side" />
 
       {advice ? (
         <div className="coach-card is-advice" id="auto-hint">

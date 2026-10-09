@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useKeyboardShortcuts, type ShortcutMap } from "../hooks/useKeyboardShortcuts";
 import { useBlackjackGame } from "../state/useBlackjackGame";
 import { ActionBar } from "./ActionBar";
-import { CoachPanel } from "./CoachPanel";
+import { CoachPanel, FeedbackCard } from "./CoachPanel";
 import { Modal } from "./Modal";
 import { SettingsDialogContent } from "./SettingsDialog";
 import { StatsDialogContent } from "./StatsDialog";
@@ -86,6 +86,7 @@ export function BlackjackTable() {
         <section className="table-column" aria-label="Blackjack table">
           <TableFelt game={game} rules={game.rules} />
           <ActionBar game={game} />
+          <FeedbackCard game={game} className="feedback-inline" />
         </section>
         <CoachPanel game={game} />
       </div>

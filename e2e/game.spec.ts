@@ -27,7 +27,7 @@ test("level 1 highlights the right move and praises following it", async ({ page
   const move = (await suggested.innerText()).split(/\s/)[0];
 
   await suggested.click();
-  await expect(page.getByText(`✓ ${move} is right`)).toBeVisible();
+  await expect(page.getByText(`✓ ${move} is right`).filter({ visible: true })).toBeVisible();
 });
 
 test("a mistake explains the correct play", async ({ page }) => {
@@ -37,7 +37,10 @@ test("a mistake explains the correct play", async ({ page }) => {
   const wrong = suggested === "Hit" ? "Stand" : "Hit";
 
   await actionButton(page, wrong).click();
-  await expect(page.getByText(`✗ Basic strategy says ${suggested}`)).toBeVisible();
+  // One feedback card is shown per layout (beside the table, or under the moves on phones).
+  const feedback = page.getByText(`✗ Basic strategy says ${suggested}`).filter({ visible: true });
+  await expect(feedback).toBeVisible();
+  await expect(feedback).toBeInViewport();
 });
 
 test("the dealer reveals, the hand settles and the bankroll moves", async ({ page }) => {
