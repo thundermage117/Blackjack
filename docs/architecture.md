@@ -110,6 +110,15 @@ sequenceDiagram
   Hook->>Out: win / lose / push, result announcement
 ```
 
+## Phone layout
+
+Phones get a compact layout that fits the screen without scrolling
+([ADR-0016](adr/0016-one-screen-phone-layout.md)). `BlackjackTable` checks
+`COMPACT_LAYOUT_QUERY` (`hooks/useMediaQuery.ts`) and renders `CoachStrip` instead of
+`CoachPanel`. The matching media query in `styles.css` turns the shell into a fixed-height
+column where the felt is a size container and card width follows its height. Wider
+screens keep the side panel, unchanged.
+
 ## Installable app and offline play
 
 `vite-plugin-pwa` (configured in `apps/web/vite.config.ts`) generates the web app manifest
