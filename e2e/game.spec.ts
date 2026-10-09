@@ -225,3 +225,31 @@ for (const [moves, level, tableOptions] of [
       expect(Number(entry.split(": ")[1]), entry).toBeLessThanOrEqual(2);
   });
 }
+
+test("card corner indices never overlap the pips or face frame", async ({ page }) => {
+  for (const seed of [1, 2, 3, 4, 5, 6]) {
+    await startAt(page, { level: 2, seed });
+    await dealButton(page).click();
+    await expect(page.locator(".playing-card:not(.is-hidden)").first()).toBeVisible();
+    await page.waitForTimeout(500); // let the deal-in animation settle
+
+    const overlaps = await page.$$eval(".playing-card:not(.is-hidden)", (cards) =>
+      cards.flatMap((card) => {
+        const corners = [...card.querySelectorAll(".card-corner")].map((el) =>
+          el.getBoundingClientRect(),
+        );
+        const art = [...card.querySelectorAll(".pip, .face-art, .ace-pip > *")].map((el) =>
+          el.getBoundingClientRect(),
+        );
+        const hit = corners.some((c) =>
+          art.some(
+            (a) => c.left < a.right && a.left < c.right && c.top < a.bottom && a.top < c.bottom,
+          ),
+        );
+        return hit ? [card.getAttribute("aria-label")] : [];
+      }),
+    );
+    expect(overlaps, `seed ${seed}`).toEqual([]);
+    await page.evaluate(() => sessionStorage.clear());
+  }
+});

@@ -5,6 +5,13 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Fixed
+
+- Card faces: the corner rank and suit no longer crowd or overlap the pips (most visibly
+  on the 10s), and the jack, queen and king frames no longer cut through the corner index.
+- Small cards (split hands on phones) show a larger index and one clear suit instead of
+  unreadable pips.
+
 ### Changed
 
 - Table messages talk to you ("You win", "Your turn") instead of about "Player".
