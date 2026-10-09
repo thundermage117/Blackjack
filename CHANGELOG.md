@@ -5,6 +5,8 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-09
+
 ### Changed (phones)
 
 - The game fits on one screen with no scrolling, on any phone and in landscape. Cards
@@ -14,39 +16,33 @@ All notable changes to this project are documented here. The format is based on
   bar for the next level. The running and true count show on the felt.
 - Turned sideways, the table is on the left and the coach and moves on the right.
 
-### Fixed (phones)
+### Changed
 
-- Split hands kept full-height cards when their width shrank, so they looked stretched.
+- First visit: the coach greets you with what the trainer does and how levels unlock,
+  instead of empty "–" statistics.
+- When luck and skill disagree, the coach says so: "You won this time, but the odds were
+  against that play" or "Right play. It just didn't work out this hand."
+- Table messages talk to you ("You win", "Your turn") instead of about "Player".
+- The title, bankroll and menu share one header row, and the sound and settings buttons
+  use drawn icons instead of emoji.
+- The shoe shows "312 left" rather than a bare number, and the disabled Chart button says
+  when it becomes available. The dealer's Ace shows as "A" rather than "11".
 
 ### Fixed
 
 - Count checks no longer show the answer: the running count is hidden until you answer
   or skip.
-- On phones, the strategy chart fits the screen (the Ace column was cut off) and the
-  "Level" button no longer wraps onto two lines.
-- The dealer's Ace shows as "A" rather than "11".
-- Situations in Stats are capitalised like everywhere else.
-
-### Fixed
-
 - Card faces: the corner rank and suit no longer crowd or overlap the pips (most visibly
   on the 10s), and the jack, queen and king frames no longer cut through the corner index.
-- Small cards (split hands on phones) show a larger index and one clear suit instead of
-  unreadable pips.
+  Small cards (split hands on phones) show a larger index and one clear suit.
+- Split-hand cards on phones no longer look stretched.
+- On phones, the strategy chart fits the screen (the Ace column was cut off) and the
+  "Level" button no longer wraps onto two lines.
+- Situations in Stats are capitalised like everywhere else.
 
-### Changed
+### Under the hood
 
-- Table messages talk to you ("You win", "Your turn") instead of about "Player".
-- First visit: the coach greets you with what the trainer does and how levels unlock,
-  instead of empty "–" statistics.
-- The shoe shows "312 left" rather than a bare number, and the disabled Chart button says
-  when it becomes available.
-- On phones, the coach's verdict on your move appears right under the move buttons instead
-  of below the fold.
-- When luck and skill disagree, the coach says so: "You won this time, but the odds were
-  against that play" or "Right play. It just didn't work out this hand."
-- The title, bankroll and menu share one header row (two on phones), so the table starts
-  higher on screen. The sound and settings buttons use drawn icons instead of emoji.
+- Vite 6.4 and Vitest 5; CI on Node 24 with `npm audit` and Dependabot updates.
 
 ## 0.1.1 - 2026-10-09
 
@@ -133,5 +129,6 @@ Android build for testing; not published as a GitHub release.
   stands vs 6, hard 11 hits vs Ace.
 - `npm run typecheck` no longer writes `.js` files next to the TypeScript sources.
 
-[Unreleased]: https://github.com/thundermage117/Blackjack/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/thundermage117/Blackjack/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/thundermage117/Blackjack/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/thundermage117/Blackjack/releases/tag/v0.1.0
