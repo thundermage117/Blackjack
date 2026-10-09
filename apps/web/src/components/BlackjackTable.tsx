@@ -2,8 +2,10 @@ import { useState } from "react";
 import { useKeyboardShortcuts, type ShortcutMap } from "../hooks/useKeyboardShortcuts";
 import { useBlackjackGame } from "../state/useBlackjackGame";
 import { ActionBar } from "./ActionBar";
+import { COMPACT_LAYOUT_QUERY, useMediaQuery } from "../hooks/useMediaQuery";
 import { CoachPanel, FeedbackCard } from "./CoachPanel";
-import { SettingsIcon, SoundOffIcon, SoundOnIcon } from "./icons";
+import { CoachStrip } from "./CoachStrip";
+import { ChartIcon, SettingsIcon, SoundOffIcon, SoundOnIcon, StatsIcon } from "./icons";
 import { Modal } from "./Modal";
 import { SettingsDialogContent } from "./SettingsDialog";
 import { StatsDialogContent } from "./StatsDialog";
@@ -39,11 +41,13 @@ export function BlackjackTable() {
   useKeyboardShortcuts(shortcuts);
 
   const chartAvailable = level.id >= 2 || game.trainer.decisions > 0;
+  const compact = useMediaQuery(COMPACT_LAYOUT_QUERY);
+  const { promotion } = level;
 
   return (
     <>
-      <header className="app-header">
-        <h1>
+      <header className={`app-header${compact ? " is-compact" : ""}`}>
+        <h1 className={compact ? "visually-hidden" : undefined}>
           Blackjack <span className="app-header-sub">Trainer</span>
         </h1>
         <div className="toolbar-bankroll">
@@ -58,11 +62,18 @@ export function BlackjackTable() {
             disabled={!chartAvailable}
             aria-keyshortcuts="C"
             title={chartAvailable ? "Strategy chart (C)" : "Available after your first hand"}
+            aria-label={compact ? "Chart" : undefined}
           >
-            Chart
+            {compact ? <ChartIcon /> : "Chart"}
           </button>
-          <button type="button" className="tool-btn" onClick={() => setDialog("stats")}>
-            Stats
+          <button
+            type="button"
+            className="tool-btn"
+            onClick={() => setDialog("stats")}
+            aria-label={compact ? "Stats" : undefined}
+            title="Stats"
+          >
+            {compact ? <StatsIcon /> : "Stats"}
           </button>
           <button
             type="button"
@@ -81,18 +92,38 @@ export function BlackjackTable() {
             onClick={() => setDialog("settings")}
             aria-label={`Settings, level ${level.id}`}
           >
-            <SettingsIcon /> Level {level.id}
+            <SettingsIcon /> {compact ? `Lv ${level.id}` : `Level ${level.id}`}
           </button>
         </nav>
+        {compact && promotion ? (
+          <div
+            className="header-progress"
+            role="progressbar"
+            aria-label="Decisions toward next level"
+            aria-valuemin={0}
+            aria-valuemax={promotion.minDecisions}
+            aria-valuenow={Math.min(game.trainer.levelDecisions, promotion.minDecisions)}
+          >
+            <div
+              className="header-progress-fill"
+              style={{
+                width: `${Math.min(1, game.trainer.levelDecisions / promotion.minDecisions) * 100}%`,
+              }}
+            />
+          </div>
+        ) : null}
       </header>
 
       <div className="game-layout">
         <section className="table-column" aria-label="Blackjack table">
-          <TableFelt game={game} rules={game.rules} />
+          <div className="felt-wrap">
+            <TableFelt game={game} rules={game.rules} showCount={compact} />
+          </div>
+          {compact ? <CoachStrip game={game} /> : null}
           <ActionBar game={game} />
-          <FeedbackCard game={game} className="feedback-inline" />
+          {compact ? null : <FeedbackCard game={game} className="feedback-inline" />}
         </section>
-        <CoachPanel game={game} />
+        {compact ? null : <CoachPanel game={game} />}
       </div>
 
       <p className="visually-hidden" aria-live="polite" aria-atomic="true">

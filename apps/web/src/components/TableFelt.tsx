@@ -1,5 +1,6 @@
 import type { GameRules } from "@blackjack/game-core";
 import type { GameViewModel } from "../state/useBlackjackGame";
+import { signed } from "./format";
 import { DealerHand, PlayerHand } from "./Hand";
 
 function payoutLabel(payout: number): string {
@@ -30,7 +31,16 @@ function FeltArc({ rules }: { rules: GameRules }) {
   );
 }
 
-export function TableFelt({ game, rules }: { game: GameViewModel; rules: GameRules }) {
+export function TableFelt({
+  game,
+  rules,
+  showCount = false,
+}: {
+  game: GameViewModel;
+  rules: GameRules;
+  /** Show the count on the felt (phones, where there's no coach panel to hold it). */
+  showCount?: boolean;
+}) {
   const { table } = game;
   const hideTotals = game.level.assists.counting && game.settings.hideTotals;
 
@@ -44,6 +54,16 @@ export function TableFelt({ game, rules }: { game: GameViewModel; rules: GameRul
           isTurn={table.phase === "dealer-turn"}
           hideTotal={hideTotals}
         />
+        {showCount && game.count ? (
+          <p className="count-card count-pill">
+            <span>
+              <abbr title="Running count">RC</abbr> {signed(game.count.running)}
+            </span>
+            <span>
+              <abbr title="True count">TC</abbr> {signed(game.count.true)}
+            </span>
+          </p>
+        ) : null}
         <div className="shoe" title={`${table.shoeCardsRemaining} cards left in the shoe`}>
           <div className="shoe-cards" aria-hidden="true" />
           <span>{table.shoeCardsRemaining} left</span>
