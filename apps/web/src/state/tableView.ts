@@ -83,7 +83,8 @@ export function summarizeDealerHand(cards: Card[], holeHidden: boolean): HandSum
   const upcard = cards[0];
   if (!upcard) return { totalLabel: "–", detailLabel: "" };
   if (holeHidden) {
-    return { totalLabel: String(scoreHand([upcard]).bestTotal), detailLabel: "Showing" };
+    const label = upcard.rank === "A" ? "A" : String(scoreHand([upcard]).bestTotal);
+    return { totalLabel: label, detailLabel: "Showing" };
   }
   return describeScore(cards);
 }
