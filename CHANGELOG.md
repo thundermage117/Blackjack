@@ -16,6 +16,8 @@ All notable changes to this project are documented here. The format is based on
   of below the fold.
 - When luck and skill disagree, the coach says so: "You won this time, but the odds were
   against that play" or "Right play. It just didn't work out this hand."
+- The title, bankroll and menu share one header row (two on phones), so the table starts
+  higher on screen. The sound and settings buttons use drawn icons instead of emoji.
 
 ## 0.1.1 - 2026-10-09
 

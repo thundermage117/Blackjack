@@ -45,7 +45,7 @@ test("a mistake explains the correct play", async ({ page }) => {
 
 test("the dealer reveals, the hand settles and the bankroll moves", async ({ page }) => {
   await startAt(page, { level: 2, seed: 1 });
-  const bankroll = page.locator(".toolbar .bankroll");
+  const bankroll = page.locator(".app-header .bankroll");
   await expect(bankroll).toHaveText("$1,000");
 
   await dealButton(page).click();

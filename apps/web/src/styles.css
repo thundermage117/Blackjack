@@ -95,8 +95,16 @@ input {
     calc(2.5rem + var(--inset-bottom)) calc(1rem + var(--inset-left));
 }
 
+.app-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin-bottom: 1rem;
+}
+
 .app-header h1 {
-  margin: 0 0 0.75rem;
+  margin: 0;
   font-family: var(--font-display);
   font-size: clamp(1.6rem, 4vw, 2.2rem);
   letter-spacing: 0.01em;
@@ -106,15 +114,6 @@ input {
   color: var(--gold);
   font-style: italic;
   font-weight: 600;
-}
-
-.toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  margin-bottom: 1rem;
 }
 
 .toolbar-bankroll {
@@ -141,9 +140,14 @@ input {
   display: flex;
   gap: 0.4rem;
   flex-wrap: wrap;
+  margin-left: auto;
 }
 
 .tool-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
   border: 1px solid var(--line);
   background: var(--panel);
   color: var(--ink);
@@ -1625,6 +1629,20 @@ input {
 
   .btn-deal {
     width: 100%;
+  }
+
+  .app-header h1 {
+    flex: 1;
+  }
+
+  /* No room beside the title: the label stays for screen readers only. */
+  .toolbar-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 
   .toolbar-buttons {
