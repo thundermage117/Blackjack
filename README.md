@@ -135,15 +135,14 @@ same way. Serve it over HTTPS so the service worker (install and offline play) r
 
 ## Roadmap
 
-### Expand to mobile
+### Mobile
 
-- ~~Make the web app installable as a PWA (manifest, icons, offline play via a service
-  worker).~~ Done, see [ADR-0014](docs/adr/0014-installable-pwa-with-offline-play.md).
-- ~~Wrap it as a native Android app (Capacitor).~~ Done, see
-  [ADR-0015](docs/adr/0015-android-app-with-capacitor.md). Still to do: iOS, Play Store
-  listing, CI-built releases, native haptics and audio.
-- Mobile polish: landscape layout, larger touch targets for split hands, swipe gestures for
-  hit/stand.
+The PWA ([ADR-0014](docs/adr/0014-installable-pwa-with-offline-play.md)) and Android app
+([ADR-0015](docs/adr/0015-android-app-with-capacitor.md)) are done. Still open:
+
+- iOS build, Play Store listing and CI-built releases.
+- Native haptics and audio.
+- Landscape layout and larger touch targets for split hands.
 
 ### Security testing
 
