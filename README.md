@@ -43,7 +43,7 @@ npm install
 npm run dev
 ```
 
-Open the URL Vite prints (usually `http://localhost:5173`). Requires Node 20+.
+Open the URL Vite prints (usually `http://localhost:5173`). Requires Node 22+.
 
 ## Android app
 
@@ -146,7 +146,8 @@ The PWA ([ADR-0014](docs/adr/0014-installable-pwa-with-offline-play.md)) and And
 
 ### Security testing
 
-- Dependency scanning: `npm audit` in CI and automated update PRs (Dependabot).
+`npm audit` runs in CI and Dependabot opens update PRs. Still open:
+
 - Static analysis with GitHub CodeQL.
 - Security headers for the hosted site (Content-Security-Policy, HSTS, `X-Content-Type-Options`)
   in `vercel.json`, verified by a test.

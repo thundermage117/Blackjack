@@ -7,7 +7,7 @@ npm install
 npm run dev      # http://localhost:5173
 ```
 
-Node 20+ is required (CI uses Node 20).
+Node 22+ is required (CI uses Node 24).
 
 ## Before you push
 
