@@ -5,6 +5,14 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Changed
+
+- Table messages talk to you ("You win", "Your turn") instead of about "Player".
+- First visit: the coach greets you with what the trainer does and how levels unlock,
+  instead of empty "–" statistics.
+- The shoe shows "312 left" rather than a bare number, and the disabled Chart button says
+  when it becomes available.
+
 ## 0.1.1 - 2026-10-09
 
 Android build for testing; not published as a GitHub release.
