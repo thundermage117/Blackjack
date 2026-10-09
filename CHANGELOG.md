@@ -20,6 +20,15 @@ All notable changes to this project are documented here. The format is based on
 
 ### Fixed
 
+- Count checks no longer show the answer: the running count is hidden until you answer
+  or skip.
+- On phones, the strategy chart fits the screen (the Ace column was cut off) and the
+  "Level" button no longer wraps onto two lines.
+- The dealer's Ace shows as "A" rather than "11".
+- Situations in Stats are capitalised like everywhere else.
+
+### Fixed
+
 - Card faces: the corner rank and suit no longer crowd or overlap the pips (most visibly
   on the 10s), and the jack, queen and king frames no longer cut through the corner index.
 - Small cards (split hands on phones) show a larger index and one clear suit instead of

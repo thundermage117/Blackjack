@@ -147,6 +147,7 @@ input {
   align-items: center;
   justify-content: center;
   gap: 0.35rem;
+  white-space: nowrap;
   border: 1px solid var(--line);
   background: var(--panel);
   color: var(--ink);
@@ -1721,6 +1722,30 @@ input {
   .tool-btn {
     flex: 1;
     padding: 0.45rem 0.5rem;
+  }
+
+  /* All 11 chart columns fit a 360px phone without sideways scrolling. */
+  .modal-body {
+    padding: 0.9rem 0.75rem 1.1rem;
+  }
+
+  .chart-grid {
+    table-layout: fixed;
+    border-spacing: 1px;
+    font-size: 0.7rem;
+  }
+
+  .chart-grid th {
+    padding: 0.2rem 0;
+  }
+
+  .chart-grid th:first-child {
+    width: 2.1rem;
+  }
+
+  .chart-grid .cell {
+    min-width: 0;
+    height: 24px;
   }
 }
 
