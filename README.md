@@ -147,7 +147,8 @@ same way. Serve it over HTTPS so the service worker (install and offline play) r
 
 ### Security testing
 
-- Dependency scanning: `npm audit` in CI and automated update PRs (Dependabot).
+`npm audit` runs in CI and Dependabot opens update PRs. Still open:
+
 - Static analysis with GitHub CodeQL.
 - Security headers for the hosted site (Content-Security-Policy, HSTS, `X-Content-Type-Options`)
   in `vercel.json`, verified by a test.
