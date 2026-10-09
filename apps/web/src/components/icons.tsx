@@ -49,3 +49,26 @@ export function SettingsIcon() {
     </Icon>
   );
 }
+
+export function ChartIcon() {
+  return (
+    <Icon>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <path d="M3 9h18" />
+      <path d="M3 15h18" />
+      <path d="M9 3v18" />
+      <path d="M15 3v18" />
+    </Icon>
+  );
+}
+
+export function StatsIcon() {
+  return (
+    <Icon>
+      <path d="M4 20V10" />
+      <path d="M10 20V4" />
+      <path d="M16 20v-7" />
+      <path d="M22 20H2" />
+    </Icon>
+  );
+}
