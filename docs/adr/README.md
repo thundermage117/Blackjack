@@ -21,6 +21,7 @@ made, and what they cost. The format follows
 | [0013](0013-end-to-end-tests-against-production-build.md)    | End-to-end tests with Playwright against the production build | Accepted |
 | [0014](0014-installable-pwa-with-offline-play.md)            | Installable PWA with offline play                             | Accepted |
 | [0015](0015-android-app-with-capacitor.md)                   | Android app with Capacitor                                    | Accepted |
+| [0016](0016-one-screen-phone-layout.md)                      | One-screen phone layout with a coach strip                    | Accepted |
 
 ## Writing a new ADR
 

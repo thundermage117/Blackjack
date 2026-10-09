@@ -30,7 +30,6 @@
   --advice: #67e8f9;
 
   --card-w: 84px;
-  --card-h: calc(var(--card-w) * 1.4);
   --card-red: #c0262d;
   --card-black: #1d1a17;
   --card-face: #fffdf8;
@@ -233,7 +232,7 @@ input {
   position: relative;
   display: flex;
   justify-content: center;
-  min-height: calc(var(--card-h) + 2.2rem);
+  min-height: calc(calc(var(--card-w) * 1.4) + 2.2rem);
 }
 
 .shoe {
@@ -405,7 +404,7 @@ input {
 
 .result-badge {
   position: absolute;
-  top: calc(var(--card-h) * 0.38);
+  top: calc(calc(var(--card-w) * 1.4) * 0.38);
   left: 50%;
   transform: translateX(-50%) rotate(-6deg);
   padding: 0.25rem 0.75rem;
@@ -423,7 +422,7 @@ input {
 
 .card-placeholder {
   width: var(--card-w);
-  height: var(--card-h);
+  height: calc(var(--card-w) * 1.4);
   border-radius: 10px;
   border: 2px dashed rgba(255, 238, 196, 0.22);
 }
@@ -474,7 +473,7 @@ input {
 .card-fan {
   display: flex;
   justify-content: center;
-  min-height: var(--card-h);
+  min-height: calc(var(--card-w) * 1.4);
 }
 
 .card-fan > .playing-card + .playing-card {
@@ -485,7 +484,7 @@ input {
   position: relative;
   flex: none;
   width: var(--card-w);
-  height: var(--card-h);
+  height: calc(var(--card-w) * 1.4);
   border-radius: calc(var(--card-w) * 0.09);
   background: var(--card-face);
   box-shadow:
@@ -1747,5 +1746,424 @@ input {
   .chart-grid .cell {
     min-width: 0;
     height: 24px;
+  }
+}
+
+.hand-name-short {
+  display: none;
+}
+
+/* ==========================================================================
+   One-screen phone layout
+   The same query as COMPACT_LAYOUT_QUERY in hooks/useMediaQuery.ts. The game fills
+   the screen exactly: header, a felt that takes the remaining height (cards size to
+   fit it), the coach strip and the move bar. Nothing scrolls.
+   ========================================================================== */
+
+@media (max-width: 640px), (max-height: 520px) and (orientation: landscape) {
+  .app-shell {
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: calc(0.4rem + var(--inset-top)) calc(0.5rem + var(--inset-right))
+      calc(0.5rem + var(--inset-bottom)) calc(0.5rem + var(--inset-left));
+  }
+
+  .app-header.is-compact {
+    position: relative;
+    flex: none;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    margin-bottom: 0.4rem;
+    padding-bottom: 0.45rem;
+  }
+
+  .app-header.is-compact .toolbar-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .app-header.is-compact .bankroll {
+    font-size: 1.35rem;
+  }
+
+  .app-header.is-compact .toolbar-buttons {
+    width: auto;
+    margin-left: auto;
+    flex-wrap: nowrap;
+    gap: 0.35rem;
+  }
+
+  .app-header.is-compact .tool-btn {
+    flex: none;
+    min-width: 40px;
+    padding: 0 0.6rem;
+  }
+
+  .header-progress {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 3px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+  }
+
+  .header-progress-fill {
+    height: 100%;
+    background: var(--gold);
+    transition: width 300ms ease;
+  }
+
+  .game-layout,
+  .table-column {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .table-column {
+    gap: 0.5rem;
+  }
+
+  /* The felt's height decides the card size: two rows of cards plus ~216px of labels,
+     chips and status must fit. Split hands cap the width so they sit side by side. */
+  .felt-wrap {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    container-type: size;
+  }
+
+  .felt {
+    --card-w: clamp(40px, calc((100cqh - 216px) / 2.8), 84px);
+    flex: 1;
+    min-height: 0;
+    margin: 7px;
+    padding: 0.6rem 0.5rem 0.9rem;
+    gap: 0;
+    justify-content: space-evenly;
+    border-radius: 22px 22px 40% 40% / 22px 22px 12% 12%;
+  }
+
+  .player-row.hands-2 {
+    --card-w: clamp(40px, calc((100cqh - 216px) / 2.8), 56px);
+  }
+
+  .player-row.hands-3,
+  .player-row.hands-4 {
+    --card-w: clamp(36px, calc((100cqh - 216px) / 2.8), 44px);
+  }
+
+  /* The printed rules only when there's room to spare (they're also in the chart). */
+  .felt-arc {
+    display: none;
+  }
+
+  @container (min-height: 540px) {
+    .felt-arc {
+      display: block;
+      margin: -0.5rem auto -1.25rem;
+    }
+  }
+
+  .felt-top {
+    min-height: 0;
+  }
+
+  .seat {
+    gap: 0.3rem;
+    padding: 0.3rem;
+  }
+
+  /* Label and bet sit side by side under the cards, saving a row. */
+  .player-seat {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    column-gap: 0.4rem;
+  }
+
+  .player-seat .card-fan,
+  .player-seat .card-placeholder {
+    flex-basis: 100%;
+  }
+
+  .player-seat.is-empty {
+    flex-direction: column;
+  }
+
+  .player-seat.is-empty .card-placeholder {
+    flex-basis: auto;
+  }
+
+  .player-row {
+    flex-wrap: nowrap;
+  }
+
+  .player-row:not(.hands-1) .hand-name-long {
+    display: none;
+  }
+
+  .player-row:not(.hands-1) .hand-name-short {
+    display: inline;
+  }
+
+  .player-row:not(.hands-1) .seat-label {
+    letter-spacing: 0.04em;
+  }
+
+  .bet-spot {
+    width: 34px;
+    height: 34px;
+  }
+
+  .mini-chip {
+    width: 26px;
+    height: 26px;
+    font-size: 0.55rem;
+  }
+
+  .player-row {
+    margin-top: 0;
+  }
+
+  .status-strip {
+    min-height: 1.8rem;
+  }
+
+  .status-message {
+    font-size: 0.9rem;
+  }
+
+  .shoe {
+    transform: scale(0.7);
+  }
+
+  .count-card.count-pill {
+    position: absolute;
+    top: 0;
+    left: 0.25rem;
+    display: grid;
+    grid-template-columns: auto;
+    gap: 0.1rem;
+    margin: 0;
+    padding: 0.25rem 0.45rem;
+    border-radius: 8px;
+    text-align: left;
+    background: rgba(0, 0, 0, 0.35);
+    color: var(--felt-ink);
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+
+  .count-pill abbr {
+    text-decoration: none;
+    color: var(--muted);
+  }
+
+  /* Coach strip */
+  .coach-strip {
+    flex: none;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    min-height: 3.6rem;
+    padding: 0.45rem 0.6rem;
+    border-radius: var(--radius);
+    background: var(--panel);
+    border: 1px solid var(--line);
+  }
+
+  .strip-body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .strip-message {
+    border-left: 3px solid var(--line);
+    padding-left: 0.5rem;
+  }
+
+  .strip-message.tone-correct {
+    border-left-color: var(--positive);
+  }
+  .strip-message.tone-mistake {
+    border-left-color: var(--negative);
+  }
+  .strip-message.tone-advice {
+    border-left-color: var(--advice);
+  }
+  .strip-message.tone-gold {
+    border-left-color: var(--gold);
+  }
+
+  .strip-message.tone-plain .strip-title {
+    font-family: var(--font-ui);
+    font-size: 0.88rem;
+    font-weight: 600;
+  }
+
+  .kbd {
+    display: none;
+  }
+
+  .strip-eyebrow {
+    margin: 0;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .strip-title {
+    margin: 0.05rem 0 0;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1rem;
+    line-height: 1.25;
+  }
+
+  .strip-detail-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4rem;
+  }
+
+  .strip-detail {
+    flex: 1;
+    min-width: 0;
+    margin: 0.1rem 0 0;
+    font-size: 0.82rem;
+    line-height: 1.35;
+    color: rgba(244, 239, 228, 0.86);
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+    overflow: hidden;
+  }
+
+  .strip-detail.is-expanded {
+    display: block;
+  }
+
+  .strip-more {
+    flex: none;
+    margin-top: 0.05rem;
+    padding: 0 0.15rem;
+    border: none;
+    background: none;
+    color: var(--gold);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .strip-actions {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 0.35rem;
+  }
+
+  .strip-hint {
+    flex: none;
+    align-self: center;
+  }
+
+  /* The count check reuses the coach-panel form, flattened into the strip. */
+  .coach-strip .coach-card {
+    padding: 0;
+    border: none;
+    background: none;
+    animation: none;
+  }
+
+  .coach-strip .count-input-row {
+    margin-top: 0.3rem;
+  }
+
+  /* Move bar: one row of up to four moves; chips and Deal on one row. */
+  .action-bar {
+    flex: none;
+    margin: 0;
+    padding: 0.5rem;
+    gap: 0.5rem;
+    flex-wrap: nowrap;
+  }
+
+  .action-bar[aria-label="Insurance decision"] {
+    flex-wrap: wrap;
+  }
+
+  .action-prompt {
+    font-size: 0.85rem;
+  }
+
+  .action-buttons.cols-4 {
+    --cols: 4;
+  }
+
+  .action-buttons .btn,
+  .btn-deal {
+    min-height: 48px;
+  }
+
+  .bet-selector {
+    width: auto;
+    flex: none;
+    gap: 0.3rem;
+  }
+
+  .chip {
+    width: 42px;
+    height: 42px;
+    font-size: 0.68rem;
+  }
+
+  .btn-deal {
+    width: auto;
+    flex: 1;
+    min-width: 0;
+    padding-inline: 0.5rem;
+  }
+}
+
+/* Phones turned sideways: the felt on the left, coach and moves on the right. */
+@media (max-height: 520px) and (orientation: landscape) {
+  .table-column {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 38%);
+    grid-template-rows: minmax(0, 1fr) auto;
+    column-gap: 0.75rem;
+  }
+
+  .felt-wrap {
+    grid-row: 1 / span 2;
+  }
+
+  .coach-strip {
+    align-self: start;
+  }
+
+  .action-bar {
+    align-self: end;
+    flex-wrap: wrap;
+  }
+
+  .action-buttons.cols-4 {
+    --cols: 2;
   }
 }

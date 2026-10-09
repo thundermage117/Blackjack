@@ -1,18 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { outcomeNote } from "../learning/trainer";
 import type { GameViewModel } from "../state/useBlackjackGame";
-
-function percent(value: number | null): string {
-  return value === null ? "–" : `${Math.round(value * 100)}%`;
-}
-
-function capitalize(text: string): string {
-  return text.charAt(0).toUpperCase() + text.slice(1);
-}
-
-function signed(value: number): string {
-  return value > 0 ? `+${value}` : String(value);
-}
+import { capitalize, percent, signed } from "./format";
 
 function LevelProgress({ game }: { game: GameViewModel }) {
   const { promotion } = game.level;
@@ -72,7 +61,7 @@ function LevelProgress({ game }: { game: GameViewModel }) {
   );
 }
 
-function CountCheckForm({ game }: { game: GameViewModel }) {
+export function CountCheckForm({ game }: { game: GameViewModel }) {
   const [value, setValue] = useState("");
   const check = game.countCheck;
   if (!check) return null;

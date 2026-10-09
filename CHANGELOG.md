@@ -5,6 +5,19 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Changed (phones)
+
+- The game fits on one screen with no scrolling, on any phone and in landscape. Cards
+  size themselves to the space, the move buttons sit in one row at the bottom, and a coach
+  strip above them shows one message at a time (tap More for the full explanation).
+- The header is one row: bankroll, chart, stats, sound and level, with a thin progress
+  bar for the next level. The running and true count show on the felt.
+- Turned sideways, the table is on the left and the coach and moves on the right.
+
+### Fixed (phones)
+
+- Split hands kept full-height cards when their width shrank, so they looked stretched.
+
 ### Fixed
 
 - Count checks no longer show the answer: the running count is hidden until you answer

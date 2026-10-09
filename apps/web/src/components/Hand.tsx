@@ -100,7 +100,16 @@ export function PlayerHand({
 }) {
   const summary = summarizeHand(hand.cards);
   const label = resultLabel(hand.result);
-  const name = handCount > 1 ? `Hand ${index + 1}` : "You";
+  // Phones show split hands as "#1", "#2" so several fit side by side.
+  const name =
+    handCount > 1 ? (
+      <>
+        <span className="hand-name-long">Hand {index + 1}</span>
+        <span className="hand-name-short">#{index + 1}</span>
+      </>
+    ) : (
+      "You"
+    );
 
   return (
     <section
