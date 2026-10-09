@@ -874,6 +874,12 @@ input {
 .coach-card.is-advice {
   border-left-color: var(--advice);
 }
+.coach-card.welcome {
+  border-left-color: var(--gold);
+}
+.coach-card.welcome .coach-text + .coach-text {
+  margin-top: 0.5rem;
+}
 .coach-card.promotion {
   border-left-color: var(--gold);
   background: rgba(233, 196, 106, 0.08);

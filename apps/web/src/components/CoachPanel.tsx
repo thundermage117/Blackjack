@@ -63,7 +63,9 @@ function LevelProgress({ game }: { game: GameViewModel }) {
       </div>
       <p className="coach-text">
         {Math.min(levelDecisions, promotion.minDecisions)}/{promotion.minDecisions} decisions ·{" "}
-        {percent(levelAccuracy)} correct (need {percent(promotion.minAccuracy)})
+        {levelAccuracy === null
+          ? `need ${percent(promotion.minAccuracy)} correct`
+          : `${percent(levelAccuracy)} correct (need ${percent(promotion.minAccuracy)})`}
       </p>
     </div>
   );
@@ -139,10 +141,25 @@ export function CoachPanel({ game }: { game: GameViewModel }) {
       <div className="coach-header">
         <span className="level-badge">Level {game.level.id}</span>
         <span className="coach-level-name">{game.level.name}</span>
-        <span className="coach-accuracy" title="Basic-strategy accuracy, all levels">
-          {percent(game.trainer.accuracy)} accuracy
-        </span>
+        {game.trainer.accuracy === null ? null : (
+          <span className="coach-accuracy" title="Basic-strategy accuracy, all levels">
+            {percent(game.trainer.accuracy)} accuracy
+          </span>
+        )}
       </div>
+
+      {game.trainer.decisions === 0 && game.isBetweenHands ? (
+        <div className="coach-card welcome">
+          <p className="coach-eyebrow">Welcome</p>
+          <p className="coach-title">Learn blackjack one decision at a time</p>
+          <p className="coach-text">
+            Play hands and the coach checks every move against basic strategy, the mathematically
+            best play. You start with hit or stand; doubling, splitting and card counting unlock as
+            you improve.
+          </p>
+          <p className="coach-text">Pick a chip and press Deal to start.</p>
+        </div>
+      ) : null}
 
       {game.feedback ? (
         <div
