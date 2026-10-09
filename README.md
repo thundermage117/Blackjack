@@ -43,7 +43,7 @@ npm install
 npm run dev
 ```
 
-Open the URL Vite prints (usually `http://localhost:5173`). Requires Node 20+.
+Open the URL Vite prints (usually `http://localhost:5173`). Requires Node 22+.
 
 ## Android app
 
