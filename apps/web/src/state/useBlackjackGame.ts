@@ -220,7 +220,11 @@ export function useBlackjackGame(): GameViewModel {
     hint: state.hint,
     autoRecommendation: levelDef.assists.autoHint ? currentRecommendation(state) : null,
     feedback: feedbackToShow,
-    count: levelDef.assists.counting && state.settings.showCount ? table.count : null,
+    // Hidden while a count check is open, or the panel would give the answer away.
+    count:
+      levelDef.assists.counting && state.settings.showCount && !isCountCheckPending(state)
+        ? table.count
+        : null,
     countCheck: state.countCheck,
     isCountCheckPending: isCountCheckPending(state),
     stats: state.stats,
