@@ -5,6 +5,27 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Fixed
+
+- Card faces: the corner rank and suit no longer crowd or overlap the pips (most visibly
+  on the 10s), and the jack, queen and king frames no longer cut through the corner index.
+- Small cards (split hands on phones) show a larger index and one clear suit instead of
+  unreadable pips.
+
+### Changed
+
+- Table messages talk to you ("You win", "Your turn") instead of about "Player".
+- First visit: the coach greets you with what the trainer does and how levels unlock,
+  instead of empty "–" statistics.
+- The shoe shows "312 left" rather than a bare number, and the disabled Chart button says
+  when it becomes available.
+- On phones, the coach's verdict on your move appears right under the move buttons instead
+  of below the fold.
+- When luck and skill disagree, the coach says so: "You won this time, but the odds were
+  against that play" or "Right play. It just didn't work out this hand."
+- The title, bankroll and menu share one header row (two on phones), so the table starts
+  higher on screen. The sound and settings buttons use drawn icons instead of emoji.
+
 ## 0.1.1 - 2026-10-09
 
 Android build for testing; not published as a GitHub release.

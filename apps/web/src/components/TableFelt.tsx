@@ -46,7 +46,7 @@ export function TableFelt({ game, rules }: { game: GameViewModel; rules: GameRul
         />
         <div className="shoe" title={`${table.shoeCardsRemaining} cards left in the shoe`}>
           <div className="shoe-cards" aria-hidden="true" />
-          <span>{table.shoeCardsRemaining}</span>
+          <span>{table.shoeCardsRemaining} left</span>
         </div>
       </div>
 

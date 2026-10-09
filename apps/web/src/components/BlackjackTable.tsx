@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useKeyboardShortcuts, type ShortcutMap } from "../hooks/useKeyboardShortcuts";
 import { useBlackjackGame } from "../state/useBlackjackGame";
 import { ActionBar } from "./ActionBar";
-import { CoachPanel } from "./CoachPanel";
+import { CoachPanel, FeedbackCard } from "./CoachPanel";
+import { SettingsIcon, SoundOffIcon, SoundOnIcon } from "./icons";
 import { Modal } from "./Modal";
 import { SettingsDialogContent } from "./SettingsDialog";
 import { StatsDialogContent } from "./StatsDialog";
@@ -41,18 +42,22 @@ export function BlackjackTable() {
 
   return (
     <>
-      <nav className="toolbar" aria-label="Game menu">
+      <header className="app-header">
+        <h1>
+          Blackjack <span className="app-header-sub">Trainer</span>
+        </h1>
         <div className="toolbar-bankroll">
           <span className="toolbar-label">Bankroll</span>
           <span className="bankroll">${game.bankroll.toLocaleString()}</span>
         </div>
-        <div className="toolbar-buttons">
+        <nav className="toolbar-buttons" aria-label="Game menu">
           <button
             type="button"
             className="tool-btn"
             onClick={() => setDialog("chart")}
             disabled={!chartAvailable}
             aria-keyshortcuts="C"
+            title={chartAvailable ? "Strategy chart (C)" : "Available after your first hand"}
           >
             Chart
           </button>
@@ -68,7 +73,7 @@ export function BlackjackTable() {
             aria-keyshortcuts="M"
             title="Sound (M)"
           >
-            {game.settings.muted ? "🔇" : "🔊"}
+            {game.settings.muted ? <SoundOffIcon /> : <SoundOnIcon />}
           </button>
           <button
             type="button"
@@ -76,15 +81,16 @@ export function BlackjackTable() {
             onClick={() => setDialog("settings")}
             aria-label={`Settings, level ${level.id}`}
           >
-            ⚙ Level {level.id}
+            <SettingsIcon /> Level {level.id}
           </button>
-        </div>
-      </nav>
+        </nav>
+      </header>
 
       <div className="game-layout">
         <section className="table-column" aria-label="Blackjack table">
           <TableFelt game={game} rules={game.rules} />
           <ActionBar game={game} />
+          <FeedbackCard game={game} className="feedback-inline" />
         </section>
         <CoachPanel game={game} />
       </div>

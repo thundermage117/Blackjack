@@ -114,7 +114,7 @@ describe("dealer play and outcomes", () => {
     expect(busted.playerHands[0].result).toBe("lose");
     expect(busted.dealerHand).toHaveLength(2);
     expect(busted.dealerHoleHidden).toBe(false);
-    expect(busted.message).toBe("Player busts with 26. Dealer wins.");
+    expect(busted.message).toBe("You bust with 26. Dealer wins.");
   });
 
   it("dealer draws until reaching 17 or more, then stops", () => {
@@ -147,7 +147,7 @@ describe("dealer play and outcomes", () => {
     const dealt = dealStacked(["10_spades", "10_clubs", "2_hearts", "6_diamonds", "K_clubs"]);
     const stood = playerStand(dealt);
     expect(stood.playerHands[0].result).toBe("win");
-    expect(stood.message).toBe("Dealer busts with 26. Player wins.");
+    expect(stood.message).toBe("Dealer busts with 26. You win.");
   });
 
   it("higher dealer total is a player loss", () => {
